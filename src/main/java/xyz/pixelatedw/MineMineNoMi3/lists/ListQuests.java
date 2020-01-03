@@ -15,6 +15,7 @@ import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.Quest
 import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.QuestSwordsmanProgression03;
 import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.QuestSwordsmanProgression04;
 import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.QuestSwordsmanProgression05;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.QuestSwordsmanProgression06;
 
 public class ListQuests
 {
@@ -28,6 +29,7 @@ public class ListQuests
 	public static Quest swordsmanProgression03 = new QuestSwordsmanProgression03();
 	public static Quest swordsmanProgression04 = new QuestSwordsmanProgression04();
 	public static Quest swordsmanProgression05 = new QuestSwordsmanProgression05();
+	public static Quest swordsmanProgression06 = new QuestSwordsmanProgression06();
 	
 	// Quest Line : Sniper Progression
 	public static Quest sniperProgression01 = new QuestSniperProgression01();	
@@ -50,6 +52,7 @@ public class ListQuests
 		registerQuest(swordsmanProgression03);
 		registerQuest(swordsmanProgression04);
 		registerQuest(swordsmanProgression05);
+		registerQuest(swordsmanProgression06);
 		
 		// Quest Line : Sniper Progression
 		registerQuest(sniperProgression01);

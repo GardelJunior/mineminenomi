@@ -10,6 +10,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import xyz.pixelatedw.MineMineNoMi3.ID;
 import xyz.pixelatedw.MineMineNoMi3.MainMod;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
 
@@ -45,9 +46,9 @@ public class PacketQuestSync implements IMessage
 		{
 			EntityPlayer player = Minecraft.getMinecraft().thePlayer;
 			QuestProperties props = QuestProperties.get(player);	 
-
+			
 			props.loadNBTData(message.data);
-
+			
 			return null;
 		}
 	}

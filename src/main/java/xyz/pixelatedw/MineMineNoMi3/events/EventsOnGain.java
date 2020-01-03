@@ -26,89 +26,79 @@ import xyz.pixelatedw.MineMineNoMi3.events.customevents.EventDoriki;
 import xyz.pixelatedw.MineMineNoMi3.helpers.DevilFruitsHelper;
 import xyz.pixelatedw.MineMineNoMi3.packets.PacketSync;
 
-public class EventsOnGain
-{
+public class EventsOnGain {
 
 	@SubscribeEvent
-	public void onDorikiGained(EventDoriki event)
-	{
-		if (event.props.isHuman())
-		{			
+	public void onDorikiGained(EventDoriki event) {
+		if (event.props.isHuman()) {
 			this.gainAbility(event.player, 500, RokushikiAbilities.SORU, false);
 			this.gainAbility(event.player, 1500, RokushikiAbilities.TEKKAI, false);
 			this.gainAbility(event.player, 3000, RokushikiAbilities.SHIGAN, false);
 			this.gainAbility(event.player, 4500, RokushikiAbilities.GEPPO, false);
-			//gainAbility(event.player, 5000, HakiAbilities.KENBUNSHOKUHAKI);
+			// gainAbility(event.player, 5000, HakiAbilities.KENBUNSHOKUHAKI);
 			this.gainAbility(event.player, 6000, RokushikiAbilities.KAMIE, false);
 			this.gainAbility(event.player, 8500, RokushikiAbilities.RANKYAKU, false);
-			//gainAbility(event.player, 9000, HakiAbilities.BUSOSHOKUHAKI);
+			// gainAbility(event.player, 9000, HakiAbilities.BUSOSHOKUHAKI);
 
-			//HAOSHOKU - 9000 + other			
-		}
-		else if (event.props.isFishman())
-		{
+			// HAOSHOKU - 9000 + other
+		} else if (event.props.isFishman()) {
 			this.gainAbility(event.player, 800, FishKarateAbilities.UCHIMIZU, false);
 			this.gainAbility(event.player, 2000, FishKarateAbilities.MURASAME, false);
 			this.gainAbility(event.player, 2500, FishKarateAbilities.KACHIAGE_HAISOKU, false);
 			this.gainAbility(event.player, 3000, FishKarateAbilities.SAMEHADA_SHOTEI, false);
-			//gainAbility(event.player, 4000, HakiAbilities.KENBUNSHOKUHAKI);
+			// gainAbility(event.player, 4000, HakiAbilities.KENBUNSHOKUHAKI);
 			this.gainAbility(event.player, 7500, FishKarateAbilities.KARAKUSAGAWARA_SEIKEN, false);
-			//gainAbility(event.player, 9000, HakiAbilities.BUSOSHOKUHAKI);
-		}
-		else if(event.props.isCyborg())
-		{
+			// gainAbility(event.player, 9000, HakiAbilities.BUSOSHOKUHAKI);
+		} else if (event.props.isCyborg()) {
 			this.gainAbility(event.player, 0, CyborgAbilities.FRESH_FIRE, false);
 			this.gainAbility(event.player, 0, CyborgAbilities.COLA_OVERDRIVE, false);
 			this.gainAbility(event.player, 0, CyborgAbilities.STRONG_RIGHT, false);
 			this.gainAbility(event.player, 0, CyborgAbilities.RADICAL_BEAM, false);
 			this.gainAbility(event.player, 0, CyborgAbilities.COUP_DE_VENT, false);
-			//gainAbility(event.player, 5500, HakiAbilities.KENBUNSHOKUHAKI);
-			//gainAbility(event.player, 8500, HakiAbilities.BUSOSHOKUHAKI);
+			// gainAbility(event.player, 5500, HakiAbilities.KENBUNSHOKUHAKI);
+			// gainAbility(event.player, 8500, HakiAbilities.BUSOSHOKUHAKI);
 		}
-		
-		if(event.player != null && MainConfig.enableExtraHearts)		
-		{
+
+		if (event.player != null && MainConfig.enableExtraHearts) {
 			IAttributeInstance maxHp = event.player.getEntityAttribute(SharedMonsterAttributes.maxHealth);
-						
-			if(event.props.getDoriki() / 100 <= 20)
+
+			if (event.props.getDoriki() / 100 <= 20)
 				event.player.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(20);
 			else
-				event.player.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(event.props.getDoriki() / 100);
+				event.player.getEntityAttribute(SharedMonsterAttributes.maxHealth)
+						.setBaseValue(event.props.getDoriki() / 100);
 		}
-	}	
+	}
 
-	private void gainAbility(EntityPlayer player, int doriki, Ability ability, boolean isHaki)
-	{
+	private void gainAbility(EntityPlayer player, int doriki, Ability ability, boolean isHaki) {
 		ExtendedEntityData props = ExtendedEntityData.get(player);
 		AbilityProperties abilityProps = AbilityProperties.get(player);
 
-		if(isHaki)
-		{
-			if (props.getDoriki() >= doriki && !abilityProps.hasHakiAbility(ability) && !DevilFruitsHelper.verifyIfAbilityIsBanned(ability))
+		if (isHaki) {
+			if (props.getDoriki() >= doriki && !abilityProps.hasHakiAbility(ability)
+					&& !DevilFruitsHelper.verifyIfAbilityIsBanned(ability))
 				abilityProps.addHakiAbility(ability);
-			if ((props.getDoriki() < doriki || DevilFruitsHelper.verifyIfAbilityIsBanned(ability)) && abilityProps.hasHakiAbility(ability))
+			if ((props.getDoriki() < doriki || DevilFruitsHelper.verifyIfAbilityIsBanned(ability))
+					&& abilityProps.hasHakiAbility(ability))
 				abilityProps.removeHakiAbility(ability);
-		}
-		else
-		{
-			if (props.getDoriki() >= doriki && !abilityProps.hasRacialAbility(ability) && !DevilFruitsHelper.verifyIfAbilityIsBanned(ability))
+		} else {
+			if (props.getDoriki() >= doriki && !abilityProps.hasRacialAbility(ability)
+					&& !DevilFruitsHelper.verifyIfAbilityIsBanned(ability))
 				abilityProps.addRacialAbility(ability);
-			if ((props.getDoriki() < doriki || DevilFruitsHelper.verifyIfAbilityIsBanned(ability)) && abilityProps.hasRacialAbility(ability))
-				abilityProps.removeRacialAbility(ability);	
+			if ((props.getDoriki() < doriki || DevilFruitsHelper.verifyIfAbilityIsBanned(ability))
+					&& abilityProps.hasRacialAbility(ability))
+				abilityProps.removeRacialAbility(ability);
 		}
-	}	
-	
+	}
+
 	@SubscribeEvent
-	public void onEntityDeath(LivingDeathEvent event)
-	{
-		if (event.entity instanceof EntityPlayer)
-		{
+	public void onEntityDeath(LivingDeathEvent event) {
+		if (event.entity instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer) event.entity;
 			ExtendedEntityData props = ExtendedEntityData.get(player);
 			AbilityProperties abilityProps = AbilityProperties.get(player);
 
-			for (int i = 0; i < 8; i++)
-			{
+			for (int i = 0; i < 8; i++) {
 				if (abilityProps.getAbilityFromSlot(i) != null)
 					abilityProps.getAbilityFromSlot(i).reset();
 			}
@@ -116,14 +106,15 @@ public class EventsOnGain
 			WyNetworkHelper.sendTo(new PacketSync(props), (EntityPlayerMP) player);
 		}
 
-		if (event.source.getEntity() instanceof EntityPlayer)
-		{
+		if (event.source.getEntity() instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer) event.source.getEntity();
 			ExtendedEntityData props = ExtendedEntityData.get(player);
 			EntityLivingBase target = event.entityLiving;
 
-			IAttributeInstance attrAtk = target.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.attackDamage);
-			IAttributeInstance attrHP = target.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.maxHealth);
+			IAttributeInstance attrAtk = target.getAttributeMap()
+					.getAttributeInstance(SharedMonsterAttributes.attackDamage);
+			IAttributeInstance attrHP = target.getAttributeMap()
+					.getAttributeInstance(SharedMonsterAttributes.maxHealth);
 
 			int rng = player.worldObj.rand.nextInt(3) + 1;
 			int plusBelly = 0;
@@ -132,8 +123,7 @@ public class EventsOnGain
 
 			boolean targetPlayer = false;
 
-			if (target instanceof EntityPlayer)
-			{
+			if (target instanceof EntityPlayer) {
 				ExtendedEntityData targetprops = ExtendedEntityData.get(target);
 
 				plusDoriki = (targetprops.getDoriki() / 4) + rng;
@@ -141,60 +131,50 @@ public class EventsOnGain
 				plusBelly = targetprops.getBelly();
 
 				targetPlayer = true;
-			}
-			else
-			{
+			} else {
 				if (props.isMarine() && target instanceof MarineData)
 					return;
 
-				if (target instanceof EntityNewMob)
-				{
-					//ExtendedNPCData targetprops = ExtendedNPCData.get(target);
-					
-					EntityNewMob entity = (EntityNewMob)target;
-					
-					if ((props.getDoriki() / 100) > entity.getDoriki())
-					{
-						if(MainConfig.enableMinimumDorikiPerKill)
+				if (target instanceof EntityNewMob) {
+					// ExtendedNPCData targetprops = ExtendedNPCData.get(target);
+
+					EntityNewMob entity = (EntityNewMob) target;
+
+					if ((props.getDoriki() / 100) > entity.getDoriki()) {
+						if (MainConfig.enableMinimumDorikiPerKill)
 							plusDoriki = 1;
-					}
-					else
+					} else
 						plusDoriki = entity.getDoriki();
-					
+
 					plusDoriki *= MainConfig.modifierDorikiReward;
 
 					plusBounty = (entity.getDoriki() * 2) + rng;
 					plusBelly = entity.getBelly() + rng;
 
 					if (!player.worldObj.isRemote && !player.capabilities.isCreativeMode)
-						WyTelemetry.addKillStat(WyHelper.getFancyName(target.getClass().getSimpleName()).replace("entity", ""), target.getClass().getSimpleName().replace("Entity", ""), 1);
-				}
-				else
-				{
-					if (attrAtk != null && attrHP != null)
-					{
+						WyTelemetry.addKillStat(
+								WyHelper.getFancyName(target.getClass().getSimpleName()).replace("entity", ""),
+								target.getClass().getSimpleName().replace("Entity", ""), 1);
+				} else {
+					if (attrAtk != null && attrHP != null) {
 						double i = attrAtk.getAttributeValue();
 						double j = attrHP.getAttributeValue();
 
 						plusDoriki = (int) Math.round(((i + j) / 10) / Math.PI) + rng;
 						plusBounty = (int) Math.round((i + j) / 10) + rng;
 						plusBelly = 1;
-						
+
 						plusDoriki *= MainConfig.modifierDorikiReward;
 
-					}
-					else
-					{
+					} else {
 						plusDoriki = 0;
 						plusBounty = 0;
 						plusBelly = 1;
 					}
 				}
 
-				if (plusDoriki > 0)
-				{
-					if (props.getDoriki() + plusDoriki <= Values.MAX_DORIKI)
-					{
+				if (plusDoriki > 0) {
+					if (props.getDoriki() + plusDoriki <= Values.MAX_DORIKI) {
 						props.alterDoriki((int) Math.round(plusDoriki));
 						EventDoriki e = new EventDoriki(player);
 						if (MinecraftForge.EVENT_BUS.post(e))
@@ -204,8 +184,7 @@ public class EventsOnGain
 
 				if (props.isPirate() || props.isRevolutionary())
 					if (plusBounty > 0)
-						if (props.getBounty() + plusBounty < Values.MAX_GENERAL)
-						{
+						if (props.getBounty() + plusBounty < Values.MAX_GENERAL) {
 							props.alterBounty(plusBounty);
 							EventBounty e = new EventBounty(player, plusBounty);
 							if (MinecraftForge.EVENT_BUS.post(e))
@@ -216,7 +195,7 @@ public class EventsOnGain
 					props.alterBelly(plusBelly);
 
 			}
-			
+
 			WyNetworkHelper.sendTo(new PacketSync(props), (EntityPlayerMP) player);
 		}
 	}

@@ -285,7 +285,7 @@ public class Ability
 	protected void sendShounenScream(EntityPlayer player, int part)
 	{
 		if(MainConfig.enableAnimeScreaming)
-    		WyNetworkHelper.sendToAllAround(new PacketShounenScream(player.getCommandSenderName(), this.attr.getAbilityDisplayName(), part), player.dimension, player.posX, player.posY, player.posZ, 15);
+    		WyNetworkHelper.sendToAllAround(new PacketShounenScream(player.getCommandSenderName(),ExtendedEntityData.get(player).getFightStyle()+"-"+this.attr.getAbilityDisplayName(), this.attr.getAbilityDisplayName(), part), player.dimension, player.posX, player.posY, player.posZ, 15);
 	}
 	
 	public void reset()

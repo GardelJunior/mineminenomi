@@ -125,7 +125,7 @@ public class WeatherAbilities
 						
 						climaTact.emptyCharge(stack);
 						super.use(player);
-						DevilFruitsHelper.sendShounenScream(player, "Thunder Lance Tempo", 0);
+						DevilFruitsHelper.sendShounenScream(player, "","Thunder Lance Tempo", 0);
 						return;
 					}
 					else
@@ -198,7 +198,7 @@ public class WeatherAbilities
 						
 						climaTact.emptyCharge(stack);
 						super.use(player);
-						DevilFruitsHelper.sendShounenScream(player, "Fog Tempo", 0);
+						DevilFruitsHelper.sendShounenScream(player,"", "Fog Tempo", 0);
 						return;
 					}
 					else
@@ -273,7 +273,7 @@ public class WeatherAbilities
 						
 						climaTact.emptyCharge(stack);
 						super.use(player);
-						DevilFruitsHelper.sendShounenScream(player, "Mirage Tempo", 0);
+						DevilFruitsHelper.sendShounenScream(player,"", "Mirage Tempo", 0);
 						return;
 					}
 					else

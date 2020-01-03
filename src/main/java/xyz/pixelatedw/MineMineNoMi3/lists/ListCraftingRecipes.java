@@ -50,7 +50,7 @@ public class ListCraftingRecipes
 				{ "X.X", "XOX", "X.X", 'X', ListMisc.UltraCola, 'O', Items.iron_ingot });	
 		
 		GameRegistry.addShapedRecipe(new ItemStack(ListMisc.Key), new Object[]
-				{ ".X.", ".X.", ".X.", 'X', Items.gold_ingot });	
+				{ ".I.", ".N.", ".N.", 'N', Items.gold_nugget,'I',Items.gold_ingot });	
 		
 		GameRegistry.addShapedRecipe(new ItemStack(ListMisc.Cola), new Object[]
 				{ ".O.", ".O.", ".X.", 'O', Items.sugar, 'X', Items.glass_bottle });

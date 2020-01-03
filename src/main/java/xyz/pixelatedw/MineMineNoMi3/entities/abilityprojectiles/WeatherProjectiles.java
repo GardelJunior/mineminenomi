@@ -207,7 +207,7 @@ public class WeatherProjectiles
 						
 						this.worldObj.spawnEntityInWorld(weatherCloud);
 						if(this.getThrower() != null)
-							DevilFruitsHelper.sendShounenScream((EntityPlayer) this.getThrower(), "Thunderbolt Tempo", 0);
+							DevilFruitsHelper.sendShounenScream((EntityPlayer) this.getThrower(),"", "Thunderbolt Tempo", 0);
 						
 						this.setDead();
 					}
@@ -368,7 +368,7 @@ public class WeatherProjectiles
 				if(perfectThunderBallsIn >= 2 && !this.superCharged)
 				{
 					this.superCharged = true;
-					DevilFruitsHelper.sendShounenScream(getThrower(), "Thunderstorm Tempo", 0);
+					DevilFruitsHelper.sendShounenScream(getThrower(),"", "Thunderstorm Tempo", 0);
 				}
 
 				List weatherBallsNear = WyHelper.getEntitiesNear(this, new double[] {15, 6, 15}, WeatherBall.class);
@@ -402,7 +402,7 @@ public class WeatherProjectiles
 
 					if(coolBalls.size() >= 2)
 					{					
-						DevilFruitsHelper.sendShounenScream(getThrower(), "Rain Tempo", 0);
+						DevilFruitsHelper.sendShounenScream(getThrower(),"", "Rain Tempo", 0);
 				        WorldInfo worldinfo = MinecraftServer.getServer().worldServers[0].getWorldInfo();
 				        worldinfo.setRaining(true);
 				        

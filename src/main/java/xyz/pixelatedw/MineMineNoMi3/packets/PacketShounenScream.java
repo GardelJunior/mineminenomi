@@ -9,25 +9,28 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import xyz.pixelatedw.MineMineNoMi3.ID;
 import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
 
 public class PacketShounenScream implements IMessage
 {
-	private String senderName, attackName;
+	private String senderName, attackName, soundId;
 	private int splitHalf = 0;
 	
 	public PacketShounenScream() {}
 	
-	public PacketShounenScream(String senderName, String attackName) 
+	public PacketShounenScream(String senderName, String soundId, String attackName) 
 	{
 		this.senderName = senderName;
 		this.attackName = attackName;
+		this.soundId = soundId;
 	}
 	
-	public PacketShounenScream(String senderName, String attackName, int splitHalf) 
+	public PacketShounenScream(String senderName, String soundId, String attackName, int splitHalf) 
 	{
 		this.senderName = senderName;
 		this.attackName = attackName;
+		this.soundId = soundId;
 		this.splitHalf = splitHalf;
 	}
 	
@@ -36,6 +39,7 @@ public class PacketShounenScream implements IMessage
 	{
 		this.senderName = ByteBufUtils.readUTF8String(buf);
 		this.attackName = ByteBufUtils.readUTF8String(buf);
+		this.soundId = ByteBufUtils.readUTF8String(buf);
 		this.splitHalf = buf.readInt();
 	}
 
@@ -44,6 +48,7 @@ public class PacketShounenScream implements IMessage
 	{
 		ByteBufUtils.writeUTF8String(buf, this.senderName);
 		ByteBufUtils.writeUTF8String(buf, this.attackName);
+		ByteBufUtils.writeUTF8String(buf, this.soundId);
 		buf.writeInt(splitHalf);
 	}
 	
@@ -56,6 +61,10 @@ public class PacketShounenScream implements IMessage
 			EntityPlayer player = Minecraft.getMinecraft().thePlayer;
 			String localizedName = message.attackName.toUpperCase();//I18n.format("ability." + message.attackName + ".name").toUpperCase();
 			String animeScream = localizedName;
+			
+			System.out.println(ID.PROJECT_ID+":"+message.soundId.replace(" ", "-").toLowerCase());
+			
+			player.worldObj.playSound(player.posX, player.posY, player.posZ,ID.PROJECT_ID+":"+message.soundId.replace(" ", "-").toLowerCase(), 1, 1,false);
 			
 			if(message.splitHalf > 0)
 			{
