@@ -38,9 +38,11 @@ public class QuestSwordsmanProgression04 extends Quest implements IKillQuest, IP
 		return "The Carnage";
 	}
 
+	
+	 
 	public String[] getQuestDescription() {
-		return new String[] { " My sensei ordered me to kill 50 mobs ",
-				"to have enought strengt learn ", "the new technique. ", "", "", "", "" };
+		return new String[] { "My sensei told me that for the next skill I would need a lot of stamina.",
+				"I must train more with my sword. ", "# Objective:", " - Kill 50 mobs", "# Rewards:", " - Yakkudori", " - 200 doriki" };
 	}
 
 	public void startQuest(EntityPlayer player) {

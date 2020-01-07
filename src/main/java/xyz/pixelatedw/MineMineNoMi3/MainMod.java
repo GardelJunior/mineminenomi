@@ -41,8 +41,7 @@ import xyz.pixelatedw.MineMineNoMi3.proxy.CommonProxy;
 import xyz.pixelatedw.MineMineNoMi3.world.MainWorldGen;
 
 @Mod(modid = ID.PROJECT_ID, name = ID.PROJECT_NAME, version = ID.PROJECT_VERSION, acceptedMinecraftVersions = "[1.7.10]")
-public class MainMod
-{
+public class MainMod {
 	@Instance(ID.PROJECT_ID)
 	private static MainMod instance;
 	@SidedProxy(clientSide = "xyz.pixelatedw.MineMineNoMi3.proxy.ClientProxy", serverSide = "xyz.pixelatedw.MineMineNoMi3.proxy.CommonProxy")
@@ -50,8 +49,7 @@ public class MainMod
 	public static SimpleNetworkWrapper dispatcher;
 
 	@EventHandler
-	public void preInit(FMLPreInitializationEvent event)
-	{
+	public void preInit(FMLPreInitializationEvent event) {
 		dispatcher = NetworkRegistry.INSTANCE.newSimpleChannel("mineminenomi");
 		MainConfig.init(event.getSuggestedConfigurationFile());
 
@@ -63,8 +61,7 @@ public class MainMod
 	}
 
 	@EventHandler
-	public void init(FMLInitializationEvent event)
-	{
+	public void init(FMLInitializationEvent event) {
 		NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GUIHandler());
 		GameRegistry.registerWorldGenerator(new MainWorldGen(), 1);
 
@@ -79,10 +76,10 @@ public class MainMod
 
 		proxy.init();
 
-		if (WyDebug.isDebug() && FMLCommonHandler.instance().getEffectiveSide().isClient())
-		{
+		if (WyDebug.isDebug() && FMLCommonHandler.instance().getEffectiveSide().isClient()) {
 			String basicPath = MainMod.class.getResource("MainMod.class").toString();
-			Values.RESOURCES_FOLDER = basicPath.substring(0, basicPath.indexOf("/bin")).replace("file:/", "").replace("%20", " ") + "/src/main/resources";
+			Values.RESOURCES_FOLDER = basicPath.substring(0, basicPath.indexOf("/bin")).replace("file:/", "")
+					.replace("%20", " ") + "/src/main/resources";
 
 			WyHelper.generateLangFiles();
 			WebAppHelper.generateWebAppJSONs();
@@ -90,26 +87,23 @@ public class MainMod
 	}
 
 	@EventHandler
-	public void postInit(FMLPostInitializationEvent evt)
-	{
+	public void postInit(FMLPostInitializationEvent evt) {
 		/*
 		 * if (!WyDebug.isDebug()) {
-		 * WyTelemetry.addStat(ID.PROJECT_MCVERSION.replace(".", "") +
-		 * "onlinePlayers", 1); Runtime.getRuntime().addShutdownHook(new
-		 * Thread() { public void run() { try {
-		 * WyTelemetry.addStat(ID.PROJECT_MCVERSION.replace(".", "") +
-		 * "onlinePlayers", -1); this.sleep(100); } catch (InterruptedException
-		 * e) { e.printStackTrace(); } } }); }
+		 * WyTelemetry.addStat(ID.PROJECT_MCVERSION.replace(".", "") + "onlinePlayers",
+		 * 1); Runtime.getRuntime().addShutdownHook(new Thread() { public void run() {
+		 * try { WyTelemetry.addStat(ID.PROJECT_MCVERSION.replace(".", "") +
+		 * "onlinePlayers", -1); this.sleep(100); } catch (InterruptedException e) {
+		 * e.printStackTrace(); } } }); }
 		 */
 	}
 
 	@EventHandler
-	public void serverInit(FMLServerStartingEvent event)
-	{
+	public void serverInit(FMLServerStartingEvent event) {
 		// event.registerServerCommand(new CommandAbility());
 		if (WyHelper.isDevBuild() || WyHelper.isEarlyAccessBuild() || WyDebug.isDebug())
 			event.registerServerCommand(new CommandFG());
-		
+
 		event.registerServerCommand(new CommandDoriki());
 		event.registerServerCommand(new CommandBelly());
 		event.registerServerCommand(new CommandBounty());
@@ -121,9 +115,8 @@ public class MainMod
 		event.registerServerCommand(new CommandDamageMultiplier());
 		event.registerServerCommand(new CommandPouch());
 	}
-	
-	public static MainMod getMineMineNoMi()
-	{
+
+	public static MainMod getMineMineNoMi() {
 		return instance;
 	}
 }

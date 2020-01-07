@@ -65,7 +65,9 @@ public class ID
 	TEXTURE_JOB = new ResourceLocation(ID.PROJECT_ID, "textures/gui/gui_job.png"),
 	TEXTURE_RACE = new ResourceLocation(ID.PROJECT_ID, "textures/gui/gui_race.png"),
 	TEXTURE_FACTION = new ResourceLocation(ID.PROJECT_ID, "textures/gui/gui_fac.png"),
-	TEXTURE_COMBATMODE = new ResourceLocation(ID.PROJECT_ID, "textures/gui/combatmode.png");
+	TEXTURE_COMBATMODE = new ResourceLocation(ID.PROJECT_ID, "textures/gui/combatmode.png"),
+	TEXTURE_GUI = new ResourceLocation(ID.PROJECT_ID, "textures/gui/gui_op.png"),
+	TEXTURE_GUI2 = new ResourceLocation(ID.PROJECT_ID, "textures/gui/gui_scroll.png");
 	
 	
 	public static final ArmorMaterial

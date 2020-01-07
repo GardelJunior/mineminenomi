@@ -7,9 +7,8 @@ import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.Quest;
 import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
 
-public interface IKillQuest
-{
+public interface IKillQuest {
 
 	boolean isTarget(EntityPlayer player, EntityLivingBase target);
-	
+
 }

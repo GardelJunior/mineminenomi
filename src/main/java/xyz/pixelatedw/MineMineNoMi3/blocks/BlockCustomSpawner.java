@@ -17,30 +17,39 @@ import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
 import xyz.pixelatedw.MineMineNoMi3.blocks.tileentities.TileEntityCustomSpawner;
 import xyz.pixelatedw.MineMineNoMi3.packets.PacketWorld;
 
-public class BlockCustomSpawner extends BlockContainer
-{
-	public BlockCustomSpawner()
-	{
+public class BlockCustomSpawner extends BlockContainer {
+	public BlockCustomSpawner() {
 		super(Material.iron);
 		this.setTickRandomly(true);
-	} 
+	}
 
-	public TileEntity createNewTileEntity(World world, int i) { return new TileEntityCustomSpawner();}
-	
-	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {return WyHelper.NULL_AABB;} 
-	
-	public boolean isOpaqueCube() {return false;}
+	public TileEntity createNewTileEntity(World world, int i) {
+		return new TileEntityCustomSpawner();
+	}
 
-    @SideOnly(Side.CLIENT)
-    public int getRenderBlockPass() { return 1; }
+	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
+		return WyHelper.NULL_AABB;
+	}
 
-    public boolean renderAsNormalBlock() { return false; }
-      
-    public int getRenderType() { return 0; }
-    
-    public void randomDisplayTick(World world, int x, int y, int z, Random rand)
-    {
-    	if(world.getBlock(x, y - 1, z) == Blocks.air)
-    		WyNetworkHelper.sendToServer(new PacketWorld(x, y, z, Block.getIdFromBlock(Blocks.air)));
+	public boolean isOpaqueCube() {
+		return false;
+	}
+
+	@SideOnly(Side.CLIENT)
+	public int getRenderBlockPass() {
+		return 1;
+	}
+
+	public boolean renderAsNormalBlock() {
+		return false;
+	}
+
+	public int getRenderType() {
+		return 0;
+	}
+
+	public void randomDisplayTick(World world, int x, int y, int z, Random rand) {
+		if (world.getBlock(x, y - 1, z) == Blocks.air)
+			WyNetworkHelper.sendToServer(new PacketWorld(x, y, z, Block.getIdFromBlock(Blocks.air)));
 	}
 }
