@@ -65,7 +65,6 @@ import xyz.pixelatedw.MineMineNoMi3.entities.mobs.worldGovernment.EntityLucci;
 import xyz.pixelatedw.MineMineNoMi3.entities.mobs.worldGovernment.EntityLucciL;
 import xyz.pixelatedw.MineMineNoMi3.entities.mobs.worldGovernment.EntitySpandam;
 import xyz.pixelatedw.MineMineNoMi3.entities.particles.EntityParticleFX;
-import xyz.pixelatedw.MineMineNoMi3.gui.GUIQuestYesNo;
 import xyz.pixelatedw.MineMineNoMi3.lists.ListDevilFruits;
 import xyz.pixelatedw.MineMineNoMi3.lists.ListMisc;
 import xyz.pixelatedw.MineMineNoMi3.models.blocks.ModelFlameDial;
@@ -266,6 +265,6 @@ public class ClientProxy extends CommonProxy
 
 	public void openQuestYesOrNoWorkaround(EntityPlayer player, EnumQuestlines questline)
 	{
-		Minecraft.getMinecraft().displayGuiScreen(new GUIQuestYesNo(player, (int)player.posX, (int)player.posY, (int)player.posZ, questline));
+		//Minecraft.getMinecraft().displayGuiScreen(new GUIQuestYesNo(player, (int)player.posX, (int)player.posY, (int)player.posZ, questline));
 	}
 }

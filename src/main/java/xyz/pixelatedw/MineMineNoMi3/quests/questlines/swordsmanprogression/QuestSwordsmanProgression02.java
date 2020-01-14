@@ -1,31 +1,6 @@
 package xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression;
 
-import javafx.scene.control.TextFormatter;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemSword;
-import net.minecraft.nbt.NBTTagCompound;
-import xyz.pixelatedw.MineMineNoMi3.ID;
-import xyz.pixelatedw.MineMineNoMi3.MainConfig;
-import xyz.pixelatedw.MineMineNoMi3.abilities.SwordsmanAbilities;
-import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
-import xyz.pixelatedw.MineMineNoMi3.api.abilities.extra.AbilityProperties;
-import xyz.pixelatedw.MineMineNoMi3.api.quests.Quest;
-import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
-import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
-import xyz.pixelatedw.MineMineNoMi3.items.weapons.ItemCoreWeapon;
-import xyz.pixelatedw.MineMineNoMi3.lists.ListQuests;
-import xyz.pixelatedw.MineMineNoMi3.quests.EnumQuestlines;
-import xyz.pixelatedw.MineMineNoMi3.quests.IKillQuest;
-import xyz.pixelatedw.MineMineNoMi3.quests.IProgressionQuest;
-import xyz.pixelatedw.MineMineNoMi3.quests.ITimedQuest;
-
-public class QuestSwordsmanProgression02 extends Quest implements ITimedQuest, IKillQuest, IProgressionQuest {
+/*public class QuestSwordsmanProgression02 extends Quest implements ITimedQuestObjective, IKillQuest, IProgressionQuest {
 
 	private final int KILL_QTY = 25;
 	private final int PROGRESS_PER_KILL = 24000 / KILL_QTY;
@@ -78,12 +53,12 @@ public class QuestSwordsmanProgression02 extends Quest implements ITimedQuest, I
 		}
 		
 
-		/*
+		
 		 * if(extraDays) WyHelper.sendMsgToPlayer(player,
 		 * "<Swordsman Master> Almost thought you died there kid, I'm glad that you survived but there's no time to rest, hope you're ready for your next trial !"
 		 * ); else WyHelper.sendMsgToPlayer(player,
 		 * "<Swordsman Master> Seems like it was too easy for you ?");
-		 */
+		 
 		super.finishQuest(player);
 	}
 
@@ -186,4 +161,4 @@ public class QuestSwordsmanProgression02 extends Quest implements ITimedQuest, I
 		}
 		return false;
 	}
-}
+}*/

@@ -45,10 +45,6 @@ import xyz.pixelatedw.MineMineNoMi3.items.AkumaNoMi;
 import xyz.pixelatedw.MineMineNoMi3.lists.ListAttributes;
 import xyz.pixelatedw.MineMineNoMi3.lists.ListMisc;
 import xyz.pixelatedw.MineMineNoMi3.packets.PacketShounenScream;
-import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.QuestSwordsmanProgression02;
-import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.QuestSwordsmanProgression03;
-import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.QuestSwordsmanProgression04;
-import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.QuestSwordsmanProgression05;
 
 public class DevilFruitsHelper {
 
@@ -297,14 +293,14 @@ public class DevilFruitsHelper {
 				verifyAndGiveAbility(SwordsmanAbilities.YAKKODORI, abilityProps);
 				verifyAndGiveAbility(SwordsmanAbilities.OTATSUMAKI, abilityProps);
 			}else {
-				if(questProps.hasQuestCompleted(new QuestSwordsmanProgression02())) 
+				/*if(questProps.hasQuestCompleted(new QuestSwordsmanProgression02())) 
 					verifyAndGiveAbility(SwordsmanAbilities.SHI_SHISHI_SONSON, abilityProps);
 				if(questProps.hasQuestCompleted(new QuestSwordsmanProgression03())) 
 					verifyAndGiveAbility(SwordsmanAbilities.SANBYAKUROKUJU_POUND_HO, abilityProps);
 				if(questProps.hasQuestCompleted(new QuestSwordsmanProgression04()))
 					verifyAndGiveAbility(SwordsmanAbilities.YAKKODORI, abilityProps);
 				if(questProps.hasQuestCompleted(new QuestSwordsmanProgression05()))
-					verifyAndGiveAbility(SwordsmanAbilities.OTATSUMAKI, abilityProps);
+					verifyAndGiveAbility(SwordsmanAbilities.OTATSUMAKI, abilityProps);*/
 				//TODO: ...
 			}
 		} else if (props.isSniper()) {

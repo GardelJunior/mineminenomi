@@ -459,7 +459,7 @@ public class ListMisc
 		// Swordsman Progression Questline
 		WyRegistry.registerName("ability.mamaragan.name", "Mamaragan");
 
-		WyRegistry.registerName("quest." + ListQuests.swordsmanProgression01.getQuestID() + ".started", "<Swordsman Master> You want to become a swordsman master, young one ? I do like the sparks in your eyes so how about this, show me your best sword and I'll see if you're fit or not to start training with me.");
+		/*WyRegistry.registerName("quest." + ListQuests.swordsmanProgression01.getQuestID() + ".started", "<Swordsman Master> You want to become a swordsman master, young one ? I do like the sparks in your eyes so how about this, show me your best sword and I'll see if you're fit or not to start training with me.");
 		WyRegistry.registerName("quest." + ListQuests.swordsmanProgression01.getQuestID() + ".completed", "<Swordsman Master> That's a really nice blade you have there, really strong indeed. Fine, I will train you, when you're ready come and talk with me again !");
 		WyRegistry.registerName("quest." + ListQuests.swordsmanProgression02.getQuestID() + ".started", "<Swordsman Master> First we'll test your determination, you must survive the night in the wilderness without dying !");
 		WyRegistry.registerName("quest." + ListQuests.swordsmanProgression02.getQuestID() + ".completed", "<Swordsman Master> Seems like it was too easy for you ?");
@@ -470,7 +470,7 @@ public class ListMisc
 		WyRegistry.registerName("quest." + ListQuests.swordsmanProgression05.getQuestID() + ".started", "<Swordsman Master> This can wait, we've got some bandit company outside kid, help me get rid of them.");
 		WyRegistry.registerName("quest." + ListQuests.swordsmanProgression05.getQuestID() + ".completed", "<Swordsman Master> With so much explosive power they are probably planning something big, better to investigate first.");
 		WyRegistry.registerName("quest." + ListQuests.swordsmanProgression05.getQuestID() + ".dialogue.01", "<Swordsman Master> There are still some bandits nearby!");
-		WyRegistry.registerName("quest." + ListQuests.swordsmanProgression05.getQuestID() + ".dialogue.02", "<Swordsman Master> No doubt they came here for this note. You must decipher it, a librarian will probably be able to crack this code.");
+		WyRegistry.registerName("quest." + ListQuests.swordsmanProgression05.getQuestID() + ".dialogue.02", "<Swordsman Master> No doubt they came here for this note. You must decipher it, a librarian will probably be able to crack this code.");*/
 		
 		// Sniper Progression Questline
 		

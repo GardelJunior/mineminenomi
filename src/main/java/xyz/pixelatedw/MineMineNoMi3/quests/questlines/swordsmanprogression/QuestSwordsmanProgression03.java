@@ -1,31 +1,7 @@
 package xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression;
 
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemSword;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.DamageSource;
-import xyz.pixelatedw.MineMineNoMi3.ID;
-import xyz.pixelatedw.MineMineNoMi3.MainConfig;
-import xyz.pixelatedw.MineMineNoMi3.abilities.SwordsmanAbilities;
-import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
-import xyz.pixelatedw.MineMineNoMi3.api.abilities.extra.AbilityProperties;
-import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestHint;
-import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestSync;
-import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
-import xyz.pixelatedw.MineMineNoMi3.api.quests.Quest;
-import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
-import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
-import xyz.pixelatedw.MineMineNoMi3.items.weapons.ItemCoreWeapon;
-import xyz.pixelatedw.MineMineNoMi3.lists.ListQuests;
-import xyz.pixelatedw.MineMineNoMi3.quests.EnumQuestlines;
-import xyz.pixelatedw.MineMineNoMi3.quests.IHitCounterQuest;
-import xyz.pixelatedw.MineMineNoMi3.quests.IProgressionQuest;
-
-public class QuestSwordsmanProgression03 extends Quest implements IHitCounterQuest, IProgressionQuest {
+/*
+public class QuestSwordsmanProgression03 extends Quest implements IHitCounterQuestObjective, IProgressionQuest {
 
 	public String getQuestID() {
 		return "swordsmanprogression03";
@@ -114,3 +90,4 @@ public class QuestSwordsmanProgression03 extends Quest implements IHitCounterQue
 	}
 
 }
+*/

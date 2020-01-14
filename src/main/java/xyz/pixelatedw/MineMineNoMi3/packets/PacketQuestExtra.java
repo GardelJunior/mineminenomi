@@ -13,7 +13,7 @@ import xyz.pixelatedw.MineMineNoMi3.MainMod;
 import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestSync;
 import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
-import xyz.pixelatedw.MineMineNoMi3.quests.ITimedQuest;
+import xyz.pixelatedw.MineMineNoMi3.quests.objectives.ITimedQuestObjective;
 
 public class PacketQuestExtra implements IMessage
 {
@@ -45,15 +45,14 @@ public class PacketQuestExtra implements IMessage
 			EntityPlayer player = Minecraft.getMinecraft().thePlayer;
 			QuestProperties props = QuestProperties.get(player);	 
 			
-			try
-			{
-				((ITimedQuest)props.getQuestIndexFromTracker(message.questId)).onTimePassEvent(player);
+			try{
+				((ITimedQuestObjective)props.getCurrentQuest()).onTimePassEvent(player);
 			}
 			catch(Exception e)
 			{
 				System.err.println("Checking different objects to check for nulls \n"
 						+ "Quest Props - " + props + "\n"
-						+ "Quest - " + props.getQuestIndexFromTracker(message.questId) + "\n"
+						+ "Quest - " + props.getCurrentQuest() + "\n"
 						+ "Player - " + player.getDisplayName() + "\n");
 			}
 
@@ -70,14 +69,14 @@ public class PacketQuestExtra implements IMessage
 			
 			try
 			{
-				((ITimedQuest)props.getQuestIndexFromTracker(message.questId)).onTimePassEvent(player);
+				((ITimedQuestObjective)props.getCurrentQuest()).onTimePassEvent(player);
 				//WyNetworkHelper.sendTo(new PacketQuestExtra(message.questId), (EntityPlayerMP) player);
 			}
 			catch(Exception e)
 			{
 				System.err.println("Checking different objects to check for nulls \n"
 						+ "Quest Props - " + props + "\n"
-						+ "Quest - " + props.getQuestIndexFromTracker(message.questId) + "\n"
+						+ "Quest - " + props.getCurrentQuest() + "\n"
 						+ "Player - " + player.getDisplayName() + "\n");
 			}
 				

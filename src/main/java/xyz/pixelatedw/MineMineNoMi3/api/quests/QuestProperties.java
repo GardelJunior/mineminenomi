@@ -1,15 +1,21 @@
 package xyz.pixelatedw.MineMineNoMi3.api.quests;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import xyz.pixelatedw.MineMineNoMi3.ID;
-import xyz.pixelatedw.MineMineNoMi3.lists.ListQuests;
+import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
+import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
 
 public class QuestProperties implements IExtendedEntityProperties {
 
@@ -18,11 +24,17 @@ public class QuestProperties implements IExtendedEntityProperties {
 
 	private boolean hasPrimaryActive = false;
 
-	private Quest[] questsList = new Quest[4];
-	private Quest[] completedQuests = new Quest[2048];
-
+	private List<Quest> quests = new ArrayList<Quest>();
+	private List<Quest> completedQuests = new ArrayList<Quest>();
+	
+	private Quest currentQuest;
+	
 	public QuestProperties(EntityPlayer entity) {
 		this.thePlayer = entity;
+	}
+	
+	public EntityPlayer getPlayer() {
+		return this.thePlayer;
 	}
 
 	public static final void register(EntityPlayer entity) {
@@ -32,178 +44,150 @@ public class QuestProperties implements IExtendedEntityProperties {
 	public static final QuestProperties get(EntityPlayer entity) {
 		return (QuestProperties) entity.getExtendedProperties(EXT_QUESTPROP_NAME);
 	}
+	
+	public List<Quest> getCompletedQuests(){
+		return this.completedQuests;
+	}
+	
+	public List<Quest> getQuests(){
+		return this.quests;
+	}
 
 	public void saveNBTData(NBTTagCompound compound) {
+		NBTTagList questsTag = new NBTTagList();
+		NBTTagList completedQuestsTag = new NBTTagList();
+		
+		quests.forEach(quest -> quest.saveToNBT(questsTag));
+		completedQuests.forEach(quest -> quest.saveToNBT(completedQuestsTag));
+		
 		NBTTagCompound props = new NBTTagCompound();
-
-		props.setBoolean("hasPrimaryActive", this.hasPrimaryActive);
-
-		for (int i = 0; i < questsList.length; i++) {
-			if (this.questsList[i] != null) {
-				props.setString("inProgressQuest_" + i, this.questsList[i].getQuestID());
-				props.setDouble("progressForQuest_" + i, this.questsList[i].getProgress());
-				if (this.questsList[i].extraData != null)
-					props.setTag("extraData_" + i, this.questsList[i].extraData);
-			}
-		}
-
-		for (int i = 0; i < completedQuests.length; i++) {
-			if (this.completedQuests[i] != null) {
-				props.setString("completedQuest_" + i, this.completedQuests[i].getQuestID());
-			}
-		}
-
+		
+		props.setTag("quests", questsTag);
+		props.setTag("completedQuests", completedQuestsTag);
+		props.setString("currentQuestID", currentQuest != null? currentQuest.getQuestID() : "null");
+		
 		compound.setTag(EXT_QUESTPROP_NAME, props);
 	}
 
 	public void loadNBTData(NBTTagCompound compound) {
 		NBTTagCompound props = (NBTTagCompound) compound.getTag(EXT_QUESTPROP_NAME);
-
-		this.hasPrimaryActive = props.getBoolean("hasPrimaryActive");
-
-		try {
-			for (int i = 0; i < questsList.length; i++) {
-				this.questsList[i] = (!props.getString("inProgressQuest_" + i).isEmpty() || QuestManager.instance()
-						.getQuestByNameFromList(ListQuests.allQuests, props.getString("inProgressQuest_" + i)) != null)
-								? QuestManager.instance()
-										.getQuestByNameFromList(ListQuests.allQuests,
-												props.getString("inProgressQuest_" + i))
-										.getClass().newInstance()
-								: null;
-				if (this.questsList[i] != null) {
-					this.questsList[i].setProgress(this.thePlayer, props.getDouble("progressForQuest_" + i));
-					this.questsList[i].extraData = (NBTTagCompound) props.getTag("extraData_" + i);
+		NBTTagList questList = props.getTagList("quests", 10);
+		
+		for(int i = 0 ; i < questList.tagCount() ; i++) {
+			NBTTagCompound questTag = questList.getCompoundTagAt(i);
+			Quest quest = getQuest(questTag.getString("quest_id"));
+			if(quest != null) {
+				quest.loadFromNBT(questTag);
+			}else {
+				try {
+					quest = (Quest) Class.forName(questTag.getString("quest_class")).newInstance();
+					quest.loadFromNBT(questTag);
+					quest.setParent(this);
+					this.quests.add(quest);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
-		} catch (Exception e) {
-			Logger.getGlobal().log(Level.SEVERE,
-					"Quest is not registered correctly or could not be found in the master list !");
-			e.printStackTrace();
 		}
-
-		for (int i = 0; i < completedQuests.length; i++) {
-			this.completedQuests[i] = (!props.getString("completedQuest_" + i).isEmpty() || QuestManager.instance()
-					.getQuestByNameFromList(ListQuests.allQuests, props.getString("completedQuest_" + i)) != null)
-							? QuestManager.instance().getQuestByNameFromList(ListQuests.allQuests,
-									props.getString("completedQuest_" + i))
-							: null;
+		
+		NBTTagList completedQuestList = props.getTagList("completedQuests", 10);
+		for(int i = 0 ; i < completedQuestList.tagCount() ; i++) {
+			NBTTagCompound questTag = completedQuestList.getCompoundTagAt(i);
+			Quest quest = getCompletedQuest(questTag.getString("quest_id"));
+			if(quest != null) {
+				quest.loadFromNBT(questTag);
+			}else {
+				try {
+					quest = (Quest) Class.forName(questTag.getString("quest_class")).newInstance();
+					quest.loadFromNBT(questTag);
+					quest.setParent(this);
+					this.completedQuests.add(quest);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 		}
-
+		
+		String questID = props.getString("currentQuestID");
+		if(!questID.equals("null")) {
+			this.currentQuest = this.quests.stream().filter(quest -> quest.getQuestID().equals(questID)).findFirst().orElse(null);
+		}
+	}
+	
+	public List<Quest> filterQuestByObjectives(Predicate<? super Quest> predicate){
+		return this.quests.stream().filter(predicate).collect(Collectors.toList());
 	}
 
 	public void init(Entity entity, World world) {
 	}
 
-	public boolean addQuestInTracker(Quest quest) {
-		if ((quest.isPrimary() && !this.hasPrimaryActive) || !quest.isPrimary()) {
-			for (int i = 0; i < questsList.length; i++) {
-				if (this.questsList[i] == null && !this.hasQuestInTracker(quest)) {
-					if (quest.isPrimary())
-						this.hasPrimaryActive = true;
-					this.questsList[i] = quest;
-					return true;
-				}
-			}
-		}
-
-		return false;
+	public boolean addQuest(Quest quest) {
+		quest.setParent(this);
+		return this.quests.add(quest);
 	}
 
-	public boolean addCompletedQuest(Quest quest) {
-		for (int i = 0; i < completedQuests.length; i++) {
-			if (this.completedQuests[i] == null && !this.hasQuestCompleted(quest)) {
-				this.completedQuests[i] = quest;
-				return true;
-			}
+	public Quest removeQuest(Quest questTemplate) {
+		Quest theQuest = getQuest(questTemplate);
+		if(theQuest != null) {
+			this.quests.remove(theQuest);
+			return theQuest;
 		}
-
-		return false;
+		return null;
 	}
 
-	public void removeQuestFromTracker(Quest questTemplate) {
-		for (int i = 0; i < questsList.length; i++) {
-			if (this.questsList[i] != null
-					&& this.questsList[i].getQuestID().toLowerCase().equals(questTemplate.getQuestID().toLowerCase())) {
-				if (questTemplate.isPrimary())
-					this.hasPrimaryActive = false;
-				this.questsList[i] = null;
-				break;
-			}
+	public boolean hasQuest(Quest questTemplate) {
+		return hasQuest(questTemplate.getQuestID());
+	}
+	
+	public boolean hasQuest(String questID) {
+		return this.quests.stream().anyMatch(q -> q.getQuestID().equals(questID));
+	}
+	
+	public boolean completeQuest(Quest quest) {
+		if(hasQuest(quest)) {
+			quest.onQuestFinish(thePlayer);
+			currentQuest = null;
+			Quest removedQuest = removeQuest(quest);
+			return this.completedQuests.add(removedQuest); 
 		}
+		return false;
+	}
+	
+	public void setCurrentQuest(Quest questTemplate) {
+		setCurrentQuest(questTemplate.getQuestID());
+	}
+	
+	public void setCurrentQuest(String questID) {
+		this.currentQuest = getQuest(questID);
+		this.currentQuest.onQuestStart(thePlayer);
 	}
 
-	public boolean hasQuestInTracker(Quest questTemplate) {
-		for (int i = 0; i < questsList.length; i++) {
-			if (this.questsList[i] != null
-					&& this.questsList[i].getQuestID().toLowerCase().equals(questTemplate.getQuestID().toLowerCase())) {
-				return true;
-			}
-		}
-
-		return false;
+	public Quest getCurrentQuest() {
+		return currentQuest;
 	}
 
 	public boolean hasQuestCompleted(Quest questTemplate) {
-		for (int i = 0; i < this.completedQuests.length; i++) {
-			if (this.completedQuests[i] != null && this.completedQuests[i].getQuestID().toLowerCase()
-					.equals(questTemplate.getQuestID().toLowerCase())) {
-				return true;
-			}
-		}
-
-		return false;
+		return this.completedQuests.stream().anyMatch(q -> q.getQuestID().equals(questTemplate.getQuestID()));
 	}
 
 	public boolean hasQuestCompleted(String questID) {
-		for (int i = 0; i < this.completedQuests.length; i++) {
-			if (this.completedQuests[i] != null
-					&& this.completedQuests[i].getQuestID().toLowerCase().equals(questID.toLowerCase())) {
-				return true;
-			}
-		}
-
-		return false;
+		return this.completedQuests.stream().anyMatch(q -> q.getQuestID().equals(questID.toLowerCase()));
 	}
 
-	public Quest getQuestFromTracker(Quest questTemplate) {
-		for (int i = 0; i < questsList.length; i++) {
-			if (this.questsList[i] != null
-					&& this.questsList[i].getQuestID().toLowerCase().equals(questTemplate.getQuestID().toLowerCase())) {
-				return this.questsList[i];
-			}
-		}
-
-		return null;
+	public Quest getQuest(Quest questTemplate) {
+		return getQuest(questTemplate.getQuestID());
 	}
-
-	public Quest getQuestIndexFromTracker(int index) {
-		if (this.questsList[index] != null) {
-			return this.questsList[index];
-		}
-
-		return null;
+	
+	public Quest getQuest(String questID) {
+		return this.quests.stream().filter(q -> q.getQuestID().equals(questID)).findFirst().orElse(null);
 	}
-
-	public Quest getPrimaryQuestFromTracker() {
-		if (this.hasPrimaryActive) {
-			for (int i = 0; i < questsList.length; i++) {
-				if (this.questsList[i] != null && this.questsList[i].isPrimary()) {
-					return this.questsList[i];
-				}
-			}
-		}
-
-		return null;
+	
+	public Quest getCompletedQuest(Quest questTemplate) {
+		return getCompletedQuest(questTemplate.getQuestID());
 	}
-
-	public void alterQuestProgress(Quest questTemplate, double progress) {
-		for (int i = 0; i < questsList.length; i++) {
-			if (this.questsList[i] != null
-					&& this.questsList[i].getQuestID().toLowerCase().equals(questTemplate.getQuestID().toLowerCase())) {
-				this.questsList[i].alterProgress(this.thePlayer, progress);
-				break;
-			}
-		}
+	
+	public Quest getCompletedQuest(String questID) {
+		return this.completedQuests.stream().filter(q -> q.getQuestID().equals(questID)).findFirst().orElse(null);
 	}
 
 	public boolean hasPrimary() {
@@ -211,32 +195,14 @@ public class QuestProperties implements IExtendedEntityProperties {
 	}
 
 	public int questsInProgress() {
-		int inProgress = 0;
-		for (int i = 0; i < questsList.length; i++) {
-			if (this.questsList[i] != null) {
-				inProgress++;
-			}
-		}
-
-		return inProgress;
+		return this.quests.size();
 	}
 
 	public void clearQuestTracker() {
-		for (int i = 0; i < questsList.length; i++) {
-			if (this.questsList[i] != null) {
-				if (this.questsList[i].isPrimary())
-					this.hasPrimaryActive = false;
-				this.questsList[i] = null;
-			}
-		}
+		this.quests.clear();
 	}
 
 	public void clearCompletedQuests() {
-		for (int i = 0; i < this.completedQuests.length; i++) {
-			if (this.completedQuests[i] != null) {
-				this.completedQuests[i] = null;
-			}
-		}
+		this.completedQuests.clear();
 	}
-
 }

@@ -5,26 +5,43 @@ import static net.minecraft.entity.SharedMonsterAttributes.attackDamage;
 import java.util.Map.Entry;
 import java.util.Optional;
 
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
-import xyz.pixelatedw.MineMineNoMi3.ID;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
 import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
-import xyz.pixelatedw.MineMineNoMi3.api.quests.Quest;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
-import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
 import xyz.pixelatedw.MineMineNoMi3.entities.mobs.quest.givers.EntityDojoSensei;
 import xyz.pixelatedw.MineMineNoMi3.items.weapons.ItemCoreWeapon;
+import xyz.pixelatedw.MineMineNoMi3.quests.DefaultSequentialQuestObjectives;
 import xyz.pixelatedw.MineMineNoMi3.quests.EnumQuestlines;
-import xyz.pixelatedw.MineMineNoMi3.quests.IInteractQuest;
-import xyz.pixelatedw.MineMineNoMi3.quests.IProgressionQuest;
+import xyz.pixelatedw.MineMineNoMi3.quests.IObjectiveParent;
+import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
+import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.SequentialQuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IEntityInterationQuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IKillEntityQuestObjective;
 
-public class QuestSwordsmanProgression01 extends Quest implements IInteractQuest, IProgressionQuest {
+public class QuestSwordsmanProgression01 extends Quest {
+
+	public QuestSwordsmanProgression01() {
+		super(
+			"Road to becoming the Best Swordsman",
+			"I am beginning my journey to become the best swordsman in the world. I need to start somewhere, maybe in a dojo."
+		);
+		addObjective(
+			new DefaultSequentialQuestObjectives(
+				"objective_00",
+				new FindAnDojoSenseiObjective(),
+				new FindBetterWeaponObjective()
+			)
+		);
+	}
 
 	@Override
 	public String getQuestID() {
@@ -32,97 +49,58 @@ public class QuestSwordsmanProgression01 extends Quest implements IInteractQuest
 	}
 
 	@Override
-	public String getQuestName() {
-		return "Road to becoming the Best Swordsman";
+	public void onQuestStart(EntityPlayer player) {
+		
 	}
 
 	@Override
-	public String[] getQuestDescription() {
-		return new String[] { " I'm starting my journey to become the best swordsman",
-				"in the world. Proving the Master that  I'm ready won't", "be easy but I need to start somewhere.", "",
-				"", "", "" };
+	public void onQuestFinish(EntityPlayer player) {
+		WyHelper.sendMsgToPlayer(player, "Quest Completa");
 	}
+	
+	class FindAnDojoSenseiObjective extends QuestObjective implements IEntityInterationQuestObjective {
 
-	@Override
-	public void startQuest(EntityPlayer player) {
-		WyHelper.sendMsgToPlayer(player, I18n.format("quest." + this.getQuestID() + ".started"));
+		public FindAnDojoSenseiObjective() {
+			super("objective_01", "Find an Sensei", "Search for nearby dojo's and talk with an swordsman master.");
+		}
 
-		super.startQuest(player);
+		@Override
+		public void onInteractWith(EntityPlayer player, EntityLivingBase target) {
+			if(target instanceof EntityDojoSensei) {
+				this.markAsCompleted();
+			}
+		}
 	}
+	
+	class FindBetterWeaponObjective extends QuestObjective implements IEntityInterationQuestObjective {
 
-	@Override
-	public void finishQuest(EntityPlayer player) {
-		WyHelper.sendMsgToPlayer(player, I18n.format("quest." + this.getQuestID() + ".completed"));
-		super.finishQuest(player);
-	}
+		public FindBetterWeaponObjective() {
+			super("objective_02", "Acquire an sword", "Return to the Dojo when you acquire a sword with damage greater than or equal to 7.");
+		}
 
-	@Override
-	public boolean canStart(EntityPlayer player) {
-		ExtendedEntityData props = ExtendedEntityData.get(player);
-		return props.isSwordsman();
-	}
+		@Override
+		public void onInteractWith(EntityPlayer player, EntityLivingBase target) {
+			if (!(target instanceof EntityDojoSensei)) return;
 
-	@Override
-	public double getMaxProgress() {
-		return 1;
-	}
+			final Optional<ItemStack> opHeldItem = Optional.ofNullable(player.getHeldItem());
+			final QuestProperties questProps = QuestProperties.get(player);
+			if(opHeldItem.isPresent()) {
+				final ItemStack heldItem = opHeldItem.get();
+				final Item heldItemType = heldItem.getItem();
+				if(heldItemType instanceof ItemSword || heldItemType instanceof ItemCoreWeapon) {
+					Optional<Entry> opEntry = heldItem.getAttributeModifiers().entries().stream()
+							.filter(e -> ((Entry)e).getKey().equals(attackDamage.getAttributeUnlocalizedName()))
+							.findFirst();
+					if(opEntry.isPresent()) {
+						AttributeModifier attrmodif = (AttributeModifier) opEntry.get().getValue();
+						double damage = attrmodif.getAmount();
 
-	@Override
-	public void setProgress(EntityPlayer player, double progress) {
-		super.setProgress(player, progress);
-	}
-
-	@Override
-	public void alterProgress(EntityPlayer player, double progress) {
-		super.alterProgress(player, progress);
-
-		if (this.isFinished(player))
-			this.finishQuest(player);
-	}
-
-	@Override
-	public boolean isPrimary() {
-		return true;
-	}
-
-	@Override
-	public boolean isTarget(EntityPlayer player, EntityLivingBase target) {
-		if (!(target instanceof EntityDojoSensei)) return false;
-
-		final Optional<ItemStack> opHeldItem = Optional.ofNullable(player.getHeldItem());
-		final QuestProperties questProps = QuestProperties.get(player);
-		if(opHeldItem.isPresent()) {
-			final ItemStack heldItem = opHeldItem.get();
-			final Item heldItemType = heldItem.getItem();
-			if(heldItemType instanceof ItemSword || heldItemType instanceof ItemCoreWeapon) {
-				Optional<Entry> opEntry = heldItem.getAttributeModifiers().entries().stream()
-						.filter(e -> ((Entry)e).getKey().equals(attackDamage.getAttributeUnlocalizedName()))
-						.findFirst();
-				if(opEntry.isPresent()) {
-					AttributeModifier attrmodif = (AttributeModifier) opEntry.get().getValue();
-					double damage = attrmodif.getAmount();
-
-					if (damage >= 7) {
-						return true;
-					} else {
-						WyHelper.sendMsgToPlayer(player,"<Swordsman Master> That sword of yours is way too weak, you won't get anywhere with that excuse of a sword. Come back to me when you have a sword that deals 7 or more damage.");
-						return false;
+						if (damage >= 7) {
+							markAsCompleted();
+						}
 					}
 				}
 			}
 		}
-
-		return false;
 	}
-
-	@Override
-	public EnumQuestlines getQuestLine() {
-		return EnumQuestlines.SWORDSMAN_PROGRESSION;
-	}
-
-	@Override
-	public boolean isRepeatable() {
-		return false;
-	}
-
 }

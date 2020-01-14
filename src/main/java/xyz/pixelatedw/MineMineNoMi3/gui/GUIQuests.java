@@ -67,11 +67,11 @@ public class GUIQuests extends GuiScreen
 		GL11.glPopMatrix();
 		
 		
-		String currentQuest = questProps.getQuestIndexFromTracker(questIndex) != null ? questProps.getQuestIndexFromTracker(questIndex).getQuestName() : "None";
+		/*String currentQuest = questProps.getCurrentQuest();
 		double currentProgress = questProps.getQuestIndexFromTracker(questIndex) != null ? (questProps.getQuestIndexFromTracker(questIndex).getProgress() / questProps.getQuestIndexFromTracker(questIndex).getMaxProgress()) * 100 : -1;
 		List<String> currentDescription = questProps.getQuestIndexFromTracker(questIndex) != null ? Arrays.stream(questProps.getQuestIndexFromTracker(questIndex).getQuestDescription()).filter(line -> !line.isEmpty()).collect(Collectors.toList()) : null;
-		
-		if(questProps.getQuestIndexFromTracker(questIndex) != null)
+		*/
+		//if(questProps.getQuestIndexFromTracker(questIndex) != null)
 		{
 			GL11.glPushMatrix();
 			{
@@ -84,9 +84,9 @@ public class GUIQuests extends GuiScreen
 				GL11.glTranslated(-256, -256, 0);
 				GL11.glRotated(-12, 0, 0, 1);
 					
-				if(questProps.getQuestIndexFromTracker(questIndex).isPrimary())
+				//if(questProps.getQuestIndexFromTracker(questIndex).isPrimary())
 					GL11.glColor3f(1.0F, 1.0F, 0.0F);
-				else
+				//else
 					GL11.glColor3f(1.0F, 1.0F, 1.0F);
 					
 				drawTexturedModalRect(0, 0, 103, 200, 12, 33);	
@@ -94,7 +94,7 @@ public class GUIQuests extends GuiScreen
 			GL11.glPopMatrix();
 		}
 		
-		GL11.glPushMatrix();
+		//GL11.glPushMatrix();
 		{
 			double scale = 1.30056;
 			GL11.glTranslated(posX + 55, posY + 120, 0);
@@ -103,21 +103,21 @@ public class GUIQuests extends GuiScreen
 			GL11.glScaled(scale, scale, 0);
 			GL11.glTranslated(-256, -256, 0);
 			
-			String questTitleToRender = questProps.getQuestIndexFromTracker(questIndex) != null ? questProps.getQuestIndexFromTracker(questIndex).getQuestID() : "none";
+			//String questTitleToRender = questProps.getQuestIndexFromTracker(questIndex) != null ? questProps.getQuestIndexFromTracker(questIndex).getQuestID() : "none";
 			
-			mc.fontRenderer.drawString(EnumChatFormatting.BOLD + "" + EnumChatFormatting.UNDERLINE + I18n.format("quest." + questTitleToRender + ".name"), 0, 0, WyHelper.hexToRGB("#161616").getRGB());
+			//mc.fontRenderer.drawString(EnumChatFormatting.BOLD + "" + EnumChatFormatting.UNDERLINE + I18n.format("quest." + questTitleToRender + ".name"), 0, 0, WyHelper.hexToRGB("#161616").getRGB());
 		}
 		GL11.glPopMatrix();
 		
-		if(currentProgress != -1)
-			mc.fontRenderer.drawString(EnumChatFormatting.BOLD + I18n.format(ID.LANG_GUI_QUESTS_PROGRESS) + " : " + String.format("%.1f", currentProgress) + "%", posX + 5, posY + 65, WyHelper.hexToRGB("#161616").getRGB());
+		//if(currentProgress != -1)
+			//mc.fontRenderer.drawString(EnumChatFormatting.BOLD + I18n.format(ID.LANG_GUI_QUESTS_PROGRESS) + " : " + String.format("%.1f", currentProgress) + "%", posX + 5, posY + 65, WyHelper.hexToRGB("#161616").getRGB());
 
-		if(currentDescription != null)
+		//if(currentDescription != null)
 		{
 			int i = 18;
-			for(int l = 0; l <  currentDescription.size(); l++)
+			//for(int l = 0; l <  currentDescription.size(); l++)
 			{
-				mc.fontRenderer.drawString(I18n.format("quest." + questProps.getQuestIndexFromTracker(questIndex).getQuestID() + ".desc." + l), posX - 20, posY + 65 + i, WyHelper.hexToRGB("#161616").getRGB());
+				//mc.fontRenderer.drawString(I18n.format("quest." + questProps.getQuestIndexFromTracker(questIndex).getQuestID() + ".desc." + l), posX - 20, posY + 65 + i, WyHelper.hexToRGB("#161616").getRGB());
 				i += 16;
 			}
 		}
