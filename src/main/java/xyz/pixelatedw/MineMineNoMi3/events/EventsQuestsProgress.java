@@ -119,8 +119,6 @@ public class EventsQuestsProgress {
 				.map(o -> (IKillEntityQuestObjective)o)
 				.forEach(o -> o.onKillEntity(player, target));
 			}
-
-			WyNetworkHelper.sendTo(new PacketQuestSync(questProps), (EntityPlayerMP) player);
 		}
 	}
 
@@ -139,8 +137,6 @@ public class EventsQuestsProgress {
 				current.getObjectivesByType(IHitCounterQuestObjective.class, o -> o instanceof IHitCounterQuestObjective)
 				.map(o -> (IHitCounterQuestObjective)o)
 				.forEach(o -> o.onHitEntity(player, target, event.source));
-				
-				WyNetworkHelper.sendTo(new PacketQuestSync(questProps), (EntityPlayerMP) player);
 			}
 		}
 	}

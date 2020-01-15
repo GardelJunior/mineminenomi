@@ -48,9 +48,10 @@ public abstract class SequentialQuestObjective extends QuestObjective implements
 	}
 	
 	public void onCompleteObjective(QuestObjective objective) {
-		this.questParent.onUpdateObjective(objective);
 		if(this.objectives.stream().allMatch(q -> q.isCompleted())) {
-			this.markAsCompleted();
+			this.isCompleted = true;
+			this.questParent.onUpdateObjective(objective);
+			this.questParent.onCompleteObjective(this);
 		}else {
 			QuestObjective nextObjective = this.objectives.stream().filter(o -> !o.isCompleted()).findFirst().orElse(null);
 			if(nextObjective != null) {
@@ -63,6 +64,7 @@ public abstract class SequentialQuestObjective extends QuestObjective implements
 					currentObjective = nextObjective;
 				}
 			}
+			this.questParent.onUpdateObjective(objective);
 		}
 	}
 	
@@ -94,5 +96,10 @@ public abstract class SequentialQuestObjective extends QuestObjective implements
 
 	public List<QuestObjective> getObjectives() {
 		return objectives;
+	}
+
+	@Override
+	public float getPercentage() {
+		return this.objectives.stream().map(o -> o.getPercentage()).reduce(0f, Float::sum)/(float)this.objectives.size();
 	}
 }

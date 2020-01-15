@@ -19,6 +19,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestHint;
+import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestSync;
 import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.ITimedQuestObjective;
@@ -31,6 +32,8 @@ public abstract class Quest implements IObjectiveParent {
 	private boolean isCompleted;
 	private QuestProperties props;
 	
+	private float percentage;
+	
 	private Map<Class, List<QuestObjective>> objectiveMapping;
 	
 	public Quest(String title, String description) {
@@ -38,6 +41,7 @@ public abstract class Quest implements IObjectiveParent {
 		this.description = description;
 		this.objectives = new ArrayList<QuestObjective>();
 		this.objectiveMapping = new ConcurrentHashMap<Class, List<QuestObjective>>();
+		this.percentage = 0;
 	}
 	
 	protected void addObjective(QuestObjective objective) {
@@ -55,6 +59,7 @@ public abstract class Quest implements IObjectiveParent {
 	public void loadFromNBT(NBTTagCompound tag) {
 		this.isCompleted = tag.getBoolean("completed");
 		for(QuestObjective obj : objectives) obj.loadFromNBT(tag);
+		this.percentage = this.objectives.stream().map(o -> o.getPercentage()).reduce(0f, Float::sum)/(float)this.objectives.size();
 	}
 	
 	public abstract String getQuestID();
@@ -68,6 +73,7 @@ public abstract class Quest implements IObjectiveParent {
 	public abstract void onQuestFinish(EntityPlayer player);
 	
 	public void onCompleteObjective(QuestObjective objective) {
+		this.percentage = this.objectives.stream().map(o -> o.getPercentage()).reduce(0f, Float::sum)/(float)this.objectives.size();
 		if(this.getObjectives().stream().allMatch(q -> q.isCompleted())) {
 			this.markAsCompleted();
 		}
@@ -79,9 +85,11 @@ public abstract class Quest implements IObjectiveParent {
 	}
 	
 	public void onUpdateObjective(QuestObjective objective) {
+		this.percentage = this.objectives.stream().map(o -> o.getPercentage()).reduce(0f, Float::sum)/(float)this.objectives.size();
 		for(Class<?> type : objective.getClass().getInterfaces()) {
 			this.objectiveMapping.remove(type);
 		}
+		WyNetworkHelper.sendTo(new PacketQuestSync(props), (EntityPlayerMP) this.props.getPlayer());
 		WyNetworkHelper.sendTo(new PacketQuestHint(), (EntityPlayerMP) props.getPlayer());
 	}
 
@@ -131,5 +139,9 @@ public abstract class Quest implements IObjectiveParent {
 			this.objectiveMapping.put(objectiveType, objStream);
 		}
 		return objStream.stream();
+	}
+	
+	public float getPercentage() {
+		return this.percentage;
 	}
 }

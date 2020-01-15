@@ -9,11 +9,14 @@ import java.util.stream.Collectors;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import xyz.pixelatedw.MineMineNoMi3.ID;
+import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestSync;
+import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
 import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
 import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
 
@@ -73,38 +76,32 @@ public class QuestProperties implements IExtendedEntityProperties {
 		NBTTagCompound props = (NBTTagCompound) compound.getTag(EXT_QUESTPROP_NAME);
 		NBTTagList questList = props.getTagList("quests", 10);
 		
+		this.completedQuests.clear();
+		this.quests.clear();
+		
 		for(int i = 0 ; i < questList.tagCount() ; i++) {
 			NBTTagCompound questTag = questList.getCompoundTagAt(i);
-			Quest quest = getQuest(questTag.getString("quest_id"));
-			if(quest != null) {
+			try {
+				Quest quest = (Quest) Class.forName(questTag.getString("quest_class")).newInstance();
 				quest.loadFromNBT(questTag);
-			}else {
-				try {
-					quest = (Quest) Class.forName(questTag.getString("quest_class")).newInstance();
-					quest.loadFromNBT(questTag);
-					quest.setParent(this);
-					this.quests.add(quest);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				quest.setParent(this);
+				this.quests.add(quest);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		
 		NBTTagList completedQuestList = props.getTagList("completedQuests", 10);
 		for(int i = 0 ; i < completedQuestList.tagCount() ; i++) {
 			NBTTagCompound questTag = completedQuestList.getCompoundTagAt(i);
-			Quest quest = getCompletedQuest(questTag.getString("quest_id"));
-			if(quest != null) {
+			try {
+				Quest quest = (Quest) Class.forName(questTag.getString("quest_class")).newInstance();
 				quest.loadFromNBT(questTag);
-			}else {
-				try {
-					quest = (Quest) Class.forName(questTag.getString("quest_class")).newInstance();
-					quest.loadFromNBT(questTag);
-					quest.setParent(this);
-					this.completedQuests.add(quest);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				quest.setParent(this);
+				quest.markAsCompleted();
+				this.completedQuests.add(quest);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		
@@ -148,7 +145,9 @@ public class QuestProperties implements IExtendedEntityProperties {
 			quest.onQuestFinish(thePlayer);
 			currentQuest = null;
 			Quest removedQuest = removeQuest(quest);
-			return this.completedQuests.add(removedQuest); 
+			this.completedQuests.add(removedQuest); 
+			WyNetworkHelper.sendTo(new PacketQuestSync(this), (EntityPlayerMP) thePlayer);
+			return true;
 		}
 		return false;
 	}
