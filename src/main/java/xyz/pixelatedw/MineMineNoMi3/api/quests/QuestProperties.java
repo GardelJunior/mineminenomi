@@ -78,6 +78,7 @@ public class QuestProperties implements IExtendedEntityProperties {
 		
 		this.completedQuests.clear();
 		this.quests.clear();
+		this.currentQuest = null;
 		
 		for(int i = 0 ; i < questList.tagCount() ; i++) {
 			NBTTagCompound questTag = questList.getCompoundTagAt(i);
@@ -120,7 +121,9 @@ public class QuestProperties implements IExtendedEntityProperties {
 
 	public boolean addQuest(Quest quest) {
 		quest.setParent(this);
-		return this.quests.add(quest);
+		this.quests.add(quest);
+		WyNetworkHelper.sendTo(new PacketQuestSync(this), (EntityPlayerMP) thePlayer);
+		return true;
 	}
 
 	public Quest removeQuest(Quest questTemplate) {
@@ -142,9 +145,9 @@ public class QuestProperties implements IExtendedEntityProperties {
 	
 	public boolean completeQuest(Quest quest) {
 		if(hasQuest(quest)) {
-			quest.onQuestFinish(thePlayer);
 			currentQuest = null;
 			Quest removedQuest = removeQuest(quest);
+			quest.onQuestFinish(thePlayer);
 			this.completedQuests.add(removedQuest); 
 			WyNetworkHelper.sendTo(new PacketQuestSync(this), (EntityPlayerMP) thePlayer);
 			return true;
@@ -159,6 +162,7 @@ public class QuestProperties implements IExtendedEntityProperties {
 	public void setCurrentQuest(String questID) {
 		this.currentQuest = getQuest(questID);
 		this.currentQuest.onQuestStart(thePlayer);
+		WyNetworkHelper.sendTo(new PacketQuestSync(this), (EntityPlayerMP) thePlayer);
 	}
 
 	public Quest getCurrentQuest() {

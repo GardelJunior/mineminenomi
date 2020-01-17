@@ -61,6 +61,7 @@ public class ListForge
 		
 		// Handles the quest related stuff, accepting quests or progressing them throught different means
 		MinecraftForge.EVENT_BUS.register(new EventsQuestsProgress());
+		FMLCommonHandler.instance().bus().register(new EventsQuestsProgress());
 		
 		// Handles the logic when the config option is true
 		MinecraftForge.EVENT_BUS.register(new EventsOneDevilFruit());

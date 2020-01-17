@@ -55,7 +55,9 @@ public class QuestSwordsmanProgression01 extends Quest {
 
 	@Override
 	public void onQuestFinish(EntityPlayer player) {
+		QuestProperties props = QuestProperties.get(player);
 		WyHelper.sendMsgToPlayer(player, "Quest Completa");
+		props.addQuest(new QuestSwordsmanProgression02());
 	}
 	
 	class FindAnDojoSenseiObjective extends QuestObjective implements IEntityInterationQuestObjective {

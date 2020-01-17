@@ -20,11 +20,9 @@ public abstract class SequentialQuestObjective extends QuestObjective implements
 		super(id, quests[0].title, quests[0].description);
 		this.objectives = new ArrayList<QuestObjective>();
 		for(QuestObjective obj : quests) {
-			obj.setLocked(true);
 			addObjective(obj);
 		}
 		this.currentObjective = this.objectives.stream().filter(o -> !o.isCompleted()).findFirst().orElse(null);
-		this.currentObjective.setLocked(false);
 	}
 	
 	@Override
@@ -50,20 +48,12 @@ public abstract class SequentialQuestObjective extends QuestObjective implements
 	public void onCompleteObjective(QuestObjective objective) {
 		if(this.objectives.stream().allMatch(q -> q.isCompleted())) {
 			this.isCompleted = true;
+			this.currentObjective = null;
 			this.questParent.onUpdateObjective(objective);
 			this.questParent.onCompleteObjective(this);
 		}else {
 			QuestObjective nextObjective = this.objectives.stream().filter(o -> !o.isCompleted()).findFirst().orElse(null);
-			if(nextObjective != null) {
-				if(currentObjective != null && !currentObjective.equals(nextObjective)) {
-					if(this.objectives.indexOf(nextObjective) > this.objectives.indexOf(currentObjective)) {
-						nextObjective.setLocked(false);
-					}else {
-						currentObjective.setLocked(true);
-					}
-					currentObjective = nextObjective;
-				}
-			}
+			currentObjective = nextObjective;
 			this.questParent.onUpdateObjective(objective);
 		}
 	}
@@ -71,31 +61,27 @@ public abstract class SequentialQuestObjective extends QuestObjective implements
 	@Override
 	public void onUpdateObjective(QuestObjective objective) {
 		QuestObjective validObjective = this.objectives.stream().filter(o -> !o.isCompleted()).findFirst().orElse(null);
-		if(validObjective != null) {
-			if(currentObjective != null && !currentObjective.equals(validObjective)) {
-				if(this.objectives.indexOf(validObjective) < this.objectives.indexOf(objective)) {
-					currentObjective.setLocked(true);
-					currentObjective = validObjective;
-				}
-			}
-		}
+		currentObjective = validObjective;
+		this.questParent.onUpdateObjective(objective);
 	}
 
 	@Override
 	public void saveToNBT(NBTTagCompound tag) {
 		for(QuestObjective objective : objectives) objective.saveToNBT(tag);
+		tag.setString(getId()+"_currentObjective", currentObjective!=null? currentObjective.getId() : "null");
 		super.saveToNBT(tag);
 	}
 
 	@Override
 	public void loadFromNBT(NBTTagCompound tag) {
 		for(QuestObjective objective : objectives) objective.loadFromNBT(tag);
-		this.currentObjective = this.objectives.stream().filter(o -> !o.isCompleted()).findFirst().orElse(null);
+		this.currentObjective = this.objectives.stream().filter(o -> o.getId().equals(tag.getString(getId()+"_currentObjective"))).findFirst().orElse(null);
 		super.loadFromNBT(tag);
 	}
 
 	public List<QuestObjective> getObjectives() {
-		return objectives;
+		System.out.println(this.currentObjective);
+		return this.currentObjective != null? Collections.singletonList(this.currentObjective) : Collections.EMPTY_LIST;
 	}
 
 	@Override

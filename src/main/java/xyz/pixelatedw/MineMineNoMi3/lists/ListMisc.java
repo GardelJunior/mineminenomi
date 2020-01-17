@@ -92,7 +92,6 @@ import xyz.pixelatedw.MineMineNoMi3.items.weapons.ItemAbilityWeapon;
 import xyz.pixelatedw.MineMineNoMi3.items.weapons.ItemCoreWeapon;
 import xyz.pixelatedw.MineMineNoMi3.items.weapons.Kabuto;
 import xyz.pixelatedw.MineMineNoMi3.items.weapons.KujaBow;
-import xyz.pixelatedw.MineMineNoMi3.world.WorldProviderScenarioArena;
 
 public class ListMisc
 {
@@ -270,8 +269,6 @@ public class ListMisc
 	public static void init()
 	{
 		ID.DIMENSION_ID_SCENARIOARENA = DimensionManager.getNextFreeDimId();
-		DimensionManager.registerProviderType(ID.DIMENSION_ID_SCENARIOARENA, WorldProviderScenarioArena.class, true);
-		DimensionManager.registerDimension(ID.DIMENSION_ID_SCENARIOARENA, ID.DIMENSION_ID_SCENARIOARENA);
 
 		Box1 = new AkumaNoMiBox(1).setMaxStackSize(1);
 		Box2 = new AkumaNoMiBox(2).setMaxStackSize(1);

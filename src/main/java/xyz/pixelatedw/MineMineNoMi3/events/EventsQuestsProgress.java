@@ -1,12 +1,6 @@
 package xyz.pixelatedw.MineMineNoMi3.events;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
-
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.entity.passive.EntityCow;
@@ -26,16 +20,15 @@ import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestSync;
 import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
 import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
-import xyz.pixelatedw.MineMineNoMi3.entities.mobs.IQuestGiver;
+import xyz.pixelatedw.MineMineNoMi3.entities.mobs.bandits.EntityBandit;
 import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
-import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
-import xyz.pixelatedw.MineMineNoMi3.quests.SequentialQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IBiomeQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IEntityInterationQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IHitCounterQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IKillEntityQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.ITimedQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.QuestSwordsmanProgression01;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.QuestSwordsmanProgression02;
 
 public class EventsQuestsProgress {
 	
@@ -50,7 +43,6 @@ public class EventsQuestsProgress {
 			Quest current = questProps.getCurrentQuest();
 			
 			if(current != null) {
-				
 				current.getObjectivesByType(ITimedQuestObjective.class, o -> o instanceof ITimedQuestObjective)
 				.map(o -> (ITimedQuestObjective)o)
 				.forEach(o -> o.onTimePassEvent(player));
@@ -72,7 +64,6 @@ public class EventsQuestsProgress {
 		ExtendedEntityData props = ExtendedEntityData.get(player);
 		QuestProperties questProps = QuestProperties.get(player);
 		EntityLivingBase target = null;
-		
 		if (event.target instanceof EntityLivingBase)
 			target = (EntityLivingBase) event.target;
 
@@ -92,13 +83,16 @@ public class EventsQuestsProgress {
 				questProps.addQuest(new QuestSwordsmanProgression01());
 				questProps.setCurrentQuest("swordsmanprogression01");
 				System.out.println("Quest Adicionada [Servidor]");
-				WyNetworkHelper.sendTo(new PacketQuestSync(questProps),(EntityPlayerMP) player);
 			} else if(target instanceof EntityChicken) {
 				System.out.println("Quest Atual: " + questProps.getCurrentQuest());
 				System.out.println("Quests:");
 				for(Quest quest : questProps.getQuests()) System.out.println(quest.getTitle());
 				System.out.println("Quests Completas:");
 				for(Quest quest : questProps.getCompletedQuests()) System.out.println(quest.getTitle());
+			} else if(target instanceof EntityBandit) {
+				questProps.addQuest(new QuestSwordsmanProgression02());
+				questProps.setCurrentQuest("swordsmanprogression02");
+				System.out.println("Quest Adicionada [Servidor]");
 			}
 		}
 	}
@@ -107,6 +101,7 @@ public class EventsQuestsProgress {
 	public void onEntityDeath(LivingDeathEvent event) {
 		if (event.source.getEntity() instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer) event.source.getEntity();
+			System.out.println("Kill Event");
 			if(player.worldObj.isRemote) return;
 			ExtendedEntityData props = ExtendedEntityData.get(player);
 			QuestProperties questProps = QuestProperties.get(player);
@@ -119,6 +114,8 @@ public class EventsQuestsProgress {
 				.map(o -> (IKillEntityQuestObjective)o)
 				.forEach(o -> o.onKillEntity(player, target));
 			}
+			
+			WyNetworkHelper.sendTo(new PacketQuestSync(questProps), (EntityPlayerMP) player);
 		}
 	}
 

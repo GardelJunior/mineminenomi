@@ -18,7 +18,7 @@ public class ExtendedEntityData implements IExtendedEntityProperties {
 	private int doriki, dorikiCmd, belly, bellyCmd, extol, extolCmd, cola = 100, maxCola = 100, hakiTimer = 0,
 			ultraCola = 0, gear = 1;
 	
-	private byte guiPage = 0;
+	private int guiPage = 0;
 	
 	private long bounty, bountyCmd;
 	private String akumaNoMiUsed = "n/a", faction = "n/a", race = "n/a", fightStyle = "n/a", crew = "n/a",
@@ -97,7 +97,7 @@ public class ExtendedEntityData implements IExtendedEntityProperties {
 		props.setInteger("KenExp", this.kenExp);
 		props.setInteger("HaoExp", this.haoExp);
 		
-		props.setByte("guiPage", this.guiPage);
+		props.setInteger("guiPage", this.guiPage);
 
 		for (int i = 0; i < this.extraEffects.length; i++)
 			if (this.extraEffects[i] != null && !this.extraEffects[i].isEmpty())
@@ -153,7 +153,7 @@ public class ExtendedEntityData implements IExtendedEntityProperties {
 		this.kenExp = props.getInteger("KenExp");
 		this.haoExp = props.getInteger("HaoExp");
 		
-		this.guiPage = props.getByte("guiPage");
+		this.guiPage = props.getInteger("guiPage");
 
 		for (int i = 0; i < this.extraEffects.length; i++)
 			this.extraEffects[i] = props.getString("extraEffect_" + i);
@@ -655,11 +655,11 @@ public class ExtendedEntityData implements IExtendedEntityProperties {
 		return this.extraEffects;
 	}
 
-	public byte getGuiPage() {
+	public int getGuiPage() {
 		return guiPage;
 	}
 
-	public void setGuiPage(byte guiPage) {
+	public void setGuiPage(int guiPage) {
 		this.guiPage = guiPage;
 	}
 }

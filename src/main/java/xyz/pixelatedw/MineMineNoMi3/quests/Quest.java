@@ -77,20 +77,20 @@ public abstract class Quest implements IObjectiveParent {
 		if(this.getObjectives().stream().allMatch(q -> q.isCompleted())) {
 			this.markAsCompleted();
 		}
-		if(isCompleted) {
-			props.completeQuest(this);
-		}
 		if(!(objective instanceof SequentialQuestObjective))
 			WyNetworkHelper.sendTo(new PacketQuestHint(), (EntityPlayerMP) props.getPlayer());
+		if(isCompleted) {
+			props.completeQuest(this);
+		}else {
+			WyNetworkHelper.sendTo(new PacketQuestSync(props), (EntityPlayerMP) this.props.getPlayer());
+		}
 	}
 	
 	public void onUpdateObjective(QuestObjective objective) {
 		this.percentage = this.objectives.stream().map(o -> o.getPercentage()).reduce(0f, Float::sum)/(float)this.objectives.size();
-		for(Class<?> type : objective.getClass().getInterfaces()) {
-			this.objectiveMapping.remove(type);
-		}
-		WyNetworkHelper.sendTo(new PacketQuestSync(props), (EntityPlayerMP) this.props.getPlayer());
+		this.objectiveMapping.clear();
 		WyNetworkHelper.sendTo(new PacketQuestHint(), (EntityPlayerMP) props.getPlayer());
+		WyNetworkHelper.sendTo(new PacketQuestSync(props), (EntityPlayerMP) this.props.getPlayer());
 	}
 
 	public String getTitle() {
@@ -131,17 +131,22 @@ public abstract class Quest implements IObjectiveParent {
 	public Stream<QuestObjective> getObjectivesByType(Class objectiveType, Predicate<QuestObjective> predicate){
 		List<QuestObjective> objStream = this.objectiveMapping.get(objectiveType);
 		if(objStream == null) {
-			objStream = Collections.synchronizedList(this.objectives.stream()
+			objStream = this.objectives.stream()
 				.<QuestObjective>flatMap(o -> o instanceof SequentialQuestObjective? ((SequentialQuestObjective)o).getObjectives().stream() : Stream.<QuestObjective>of(o))
 				.filter(predicate)
-				.filter(o -> (!o.isCompleted() || o.completionCanChange()) && !o.isLocked())
-				.collect(Collectors.toList()));
+				.filter(o -> !o.isCompleted())
+				.collect(Collectors.toList());
 			this.objectiveMapping.put(objectiveType, objStream);
 		}
+		
 		return objStream.stream();
 	}
 	
 	public float getPercentage() {
 		return this.percentage;
+	}
+	
+	public boolean checkForStartConditions(EntityPlayer player) {
+		return true;
 	}
 }

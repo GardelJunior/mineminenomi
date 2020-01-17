@@ -34,7 +34,8 @@ public class GUIPlayer extends GuiScreen {
 	private ExtendedEntityData props;
 	private List<GuiPage> pages;
 	private GuiPage currentPage;
-
+	private boolean alternativeInit;
+	
 	public GUIPlayer(EntityPlayer player) {
 		this.player = player;
 		this.props = ExtendedEntityData.get(player);
@@ -50,12 +51,14 @@ public class GUIPlayer extends GuiScreen {
 	public GUIPlayer(EntityPlayer player, int currentPage) {
 		this(player);
 		this.currentPage = this.pages.get(currentPage);
+		this.alternativeInit = true;
 	}
 
 	@Override
 	protected void keyTyped(char key, int action) {
 		//ESC or E or R
 		if(action == 1 || action==18 || action == 19) {
+			if(!alternativeInit) props.setGuiPage(this.pages.indexOf(currentPage));
             this.mc.displayGuiScreen((GuiScreen)null);
             this.mc.setIngameFocus();
 		}
