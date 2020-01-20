@@ -1,5 +1,8 @@
 package xyz.pixelatedw.MineMineNoMi3.events;
 
+import java.util.Iterator;
+import java.util.List;
+
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.passive.EntityChicken;
@@ -37,21 +40,20 @@ public class EventsQuestsProgress {
 		if (event.entityLiving instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer) event.entityLiving;
 			if(player.worldObj.isRemote) return;
-			ExtendedEntityData props = ExtendedEntityData.get(player);
-			QuestProperties questProps = QuestProperties.get(player);
-
-			Quest current = questProps.getCurrentQuest();
-			
-			if(current != null) {
-				current.getObjectivesByType(ITimedQuestObjective.class, o -> o instanceof ITimedQuestObjective)
-				.map(o -> (ITimedQuestObjective)o)
-				.forEach(o -> o.onTimePassEvent(player));
-				
-				if(player.worldObj.getWorldTime() % 100 == 0) {
-					BiomeGenBase biome = player.worldObj.getBiomeGenForCoords((int)player.posX, (int)player.posZ);
-					current.getObjectivesByType(IBiomeQuestObjective.class, o -> o instanceof IBiomeQuestObjective)
-					.map(o -> (IBiomeQuestObjective)o)
-					.forEach(o -> o.onChangeBiome(player, biome));
+			if(player.worldObj.getWorldTime() % 10 == 0) {
+				ExtendedEntityData props = ExtendedEntityData.get(player);
+				QuestProperties questProps = QuestProperties.get(player);
+	
+				if(questProps.getCurrentQuest() != null) {
+					int i = 0;
+					List<ITimedQuestObjective> objectives = questProps.<ITimedQuestObjective>getObjectivesByType(ITimedQuestObjective.class);
+					for(i = 0 ; i < objectives.size() ; i++) objectives.get(i).onTimePassEvent(player);
+					
+					if(player.worldObj.getWorldTime() % 100 == 0) {
+						BiomeGenBase biome = player.worldObj.getBiomeGenForCoords((int)player.posX, (int)player.posZ);
+						List<IBiomeQuestObjective> objectives2 = questProps.<IBiomeQuestObjective>getObjectivesByType(IBiomeQuestObjective.class);
+						for(i = 0 ; i < objectives2.size() ; i++) objectives2.get(i).onChangeBiome(player, biome);
+					}
 				}
 			}
 		}
@@ -68,15 +70,11 @@ public class EventsQuestsProgress {
 			target = (EntityLivingBase) event.target;
 
 		if (target != null && MainConfig.enableQuests) {
-			
-			Quest current = questProps.getCurrentQuest();
-			
 			final EntityLivingBase targetEntity = target;
 			
-			if(current != null) {
-				current.getObjectivesByType(IEntityInterationQuestObjective.class, o -> o instanceof IEntityInterationQuestObjective)
-				.map(o -> (IEntityInterationQuestObjective)o)
-				.forEach(o -> o.onInteractWith(player,targetEntity));
+			if(questProps.getCurrentQuest() != null) {
+				List<IEntityInterationQuestObjective> it = questProps.<IEntityInterationQuestObjective>getObjectivesByType(IEntityInterationQuestObjective.class);
+				for(int i = 0 ; i < it.size() ; i++) it.get(i).onInteractWith(player, targetEntity);
 			}
 			
 			if (target instanceof EntityCow) {
@@ -101,21 +99,16 @@ public class EventsQuestsProgress {
 	public void onEntityDeath(LivingDeathEvent event) {
 		if (event.source.getEntity() instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer) event.source.getEntity();
-			System.out.println("Kill Event");
 			if(player.worldObj.isRemote) return;
 			ExtendedEntityData props = ExtendedEntityData.get(player);
 			QuestProperties questProps = QuestProperties.get(player);
 			EntityLivingBase target = event.entityLiving;
 
-			Quest current = questProps.getCurrentQuest();
-			
-			if(current != null) {
-				current.getObjectivesByType(IKillEntityQuestObjective.class, o -> o instanceof IKillEntityQuestObjective)
-				.map(o -> (IKillEntityQuestObjective)o)
-				.forEach(o -> o.onKillEntity(player, target));
+			if(questProps.getCurrentQuest() != null) {
+				List<IKillEntityQuestObjective> it = questProps.<IKillEntityQuestObjective>getObjectivesByType(IKillEntityQuestObjective.class);
+				for(int i = 0 ; i < it.size() ; i++) it.get(i).onKillEntity(player, target);
+				WyNetworkHelper.sendTo(new PacketQuestSync(questProps), (EntityPlayerMP) player);
 			}
-			
-			WyNetworkHelper.sendTo(new PacketQuestSync(questProps), (EntityPlayerMP) player);
 		}
 	}
 
@@ -128,12 +121,9 @@ public class EventsQuestsProgress {
 			QuestProperties questProps = QuestProperties.get(player);
 			EntityLivingBase target = event.entityLiving;
 
-			Quest current = questProps.getCurrentQuest();
-			
-			if(current != null) {
-				current.getObjectivesByType(IHitCounterQuestObjective.class, o -> o instanceof IHitCounterQuestObjective)
-				.map(o -> (IHitCounterQuestObjective)o)
-				.forEach(o -> o.onHitEntity(player, target, event.source));
+			if(questProps.getCurrentQuest() != null) {
+				List<IHitCounterQuestObjective> it = questProps.<IHitCounterQuestObjective>getObjectivesByType(IHitCounterQuestObjective.class);
+				for(int i = 0 ; i < it.size() ; i++) it.get(i).onHitEntity(player, target, event.source);
 			}
 		}
 	}

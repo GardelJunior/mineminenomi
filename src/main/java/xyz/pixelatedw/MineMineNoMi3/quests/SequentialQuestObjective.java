@@ -16,8 +16,8 @@ public abstract class SequentialQuestObjective extends QuestObjective implements
 	private QuestObjective currentObjective;
 	private List<QuestObjective> objectives;
 	
-	public SequentialQuestObjective(String id, QuestObjective... quests) {
-		super(id, quests[0].title, quests[0].description);
+	public SequentialQuestObjective(QuestObjective... quests) {
+		super(quests[0].title, quests[0].description);
 		this.objectives = new ArrayList<QuestObjective>();
 		for(QuestObjective obj : quests) {
 			addObjective(obj);
@@ -53,6 +53,8 @@ public abstract class SequentialQuestObjective extends QuestObjective implements
 			this.questParent.onCompleteObjective(this);
 		}else {
 			QuestObjective nextObjective = this.objectives.stream().filter(o -> !o.isCompleted()).findFirst().orElse(null);
+			unsubscribeObjectives(currentObjective);
+			subscribeObjectives(nextObjective);
 			currentObjective = nextObjective;
 			this.questParent.onUpdateObjective(objective);
 		}
@@ -80,12 +82,21 @@ public abstract class SequentialQuestObjective extends QuestObjective implements
 	}
 
 	public List<QuestObjective> getObjectives() {
-		System.out.println(this.currentObjective);
 		return this.currentObjective != null? Collections.singletonList(this.currentObjective) : Collections.EMPTY_LIST;
 	}
 
 	@Override
 	public float getPercentage() {
 		return this.objectives.stream().map(o -> o.getPercentage()).reduce(0f, Float::sum)/(float)this.objectives.size();
+	}
+
+	@Override
+	public void subscribeObjectives(QuestObjective... objectives) {
+		questParent.subscribeObjectives(objectives);
+	}
+
+	@Override
+	public void unsubscribeObjectives(QuestObjective... objectives) {
+		questParent.unsubscribeObjectives(objectives);
 	}
 }

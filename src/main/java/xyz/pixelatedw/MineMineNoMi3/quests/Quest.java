@@ -26,6 +26,9 @@ import xyz.pixelatedw.MineMineNoMi3.quests.objectives.ITimedQuestObjective;
 
 public abstract class Quest implements IObjectiveParent {
 	
+	private int sequentialIndexer = 0;
+	private int objectiveIndexer = 0;
+	
 	private List<QuestObjective> objectives;
 	private String title;
 	private String description;
@@ -34,18 +37,21 @@ public abstract class Quest implements IObjectiveParent {
 	
 	private float percentage;
 	
-	private Map<Class, List<QuestObjective>> objectiveMapping;
-	
 	public Quest(String title, String description) {
 		this.title = title;
 		this.description = description;
 		this.objectives = new ArrayList<QuestObjective>();
-		this.objectiveMapping = new ConcurrentHashMap<Class, List<QuestObjective>>();
 		this.percentage = 0;
 	}
 	
 	protected void addObjective(QuestObjective objective) {
-		this.objectives.add(objective.withParent(this));
+		this.objectives.add(objective.withParent(this).withId("obj_"+objectiveIndexer++));
+	}
+	
+	protected void addSequentialObjectives(QuestObjective...objectives) {
+		for(QuestObjective qo : objectives) qo.withId("obj_"+objectiveIndexer++);
+		final SequentialQuestObjective sqo = (SequentialQuestObjective) new DefaultSequentialQuestObjectives(objectives).withId("seq_obj_"+sequentialIndexer++);
+		this.objectives.add(sqo.withParent(this));
 	}
 	
 	public void saveToNBT(NBTTagList tag) {
@@ -59,7 +65,7 @@ public abstract class Quest implements IObjectiveParent {
 	public void loadFromNBT(NBTTagCompound tag) {
 		this.isCompleted = tag.getBoolean("completed");
 		for(QuestObjective obj : objectives) obj.loadFromNBT(tag);
-		this.percentage = this.objectives.stream().map(o -> o.getPercentage()).reduce(0f, Float::sum)/(float)this.objectives.size();
+		this.percentage = calcPercentage();
 	}
 	
 	public abstract String getQuestID();
@@ -73,24 +79,26 @@ public abstract class Quest implements IObjectiveParent {
 	public abstract void onQuestFinish(EntityPlayer player);
 	
 	public void onCompleteObjective(QuestObjective objective) {
-		this.percentage = this.objectives.stream().map(o -> o.getPercentage()).reduce(0f, Float::sum)/(float)this.objectives.size();
-		if(this.getObjectives().stream().allMatch(q -> q.isCompleted())) {
-			this.markAsCompleted();
-		}
-		if(!(objective instanceof SequentialQuestObjective))
-			WyNetworkHelper.sendTo(new PacketQuestHint(), (EntityPlayerMP) props.getPlayer());
-		if(isCompleted) {
+		props.unsubscribeObjectives(objective);
+		percentage = calcPercentage();
+		if(allQuestsAreCompleted()) markAsCompleted();
+		if(isCompleted()) {
 			props.completeQuest(this);
 		}else {
-			WyNetworkHelper.sendTo(new PacketQuestSync(props), (EntityPlayerMP) this.props.getPlayer());
+			if(!(objective instanceof SequentialQuestObjective))
+				WyNetworkHelper.sendTo(new PacketQuestHint(), (EntityPlayerMP) props.getPlayer());
+			WyNetworkHelper.sendTo(new PacketQuestSync(props), (EntityPlayerMP) props.getPlayer());
 		}
 	}
 	
 	public void onUpdateObjective(QuestObjective objective) {
-		this.percentage = this.objectives.stream().map(o -> o.getPercentage()).reduce(0f, Float::sum)/(float)this.objectives.size();
-		this.objectiveMapping.clear();
+		this.percentage = calcPercentage();
 		WyNetworkHelper.sendTo(new PacketQuestHint(), (EntityPlayerMP) props.getPlayer());
 		WyNetworkHelper.sendTo(new PacketQuestSync(props), (EntityPlayerMP) this.props.getPlayer());
+	}
+	
+	private boolean allQuestsAreCompleted() {
+		return getObjectives().stream().allMatch(o -> o.isCompleted());
 	}
 
 	public String getTitle() {
@@ -119,27 +127,11 @@ public abstract class Quest implements IObjectiveParent {
 	
 	public void markAsCompleted() {
 		this.isCompleted = true;
-		for(List list : this.objectiveMapping.values()) list.clear();
-		this.objectiveMapping.clear();
 	}
 	
 	public Quest setParent(QuestProperties props) {
 		this.props = props;
 		return this;
-	}
-	
-	public Stream<QuestObjective> getObjectivesByType(Class objectiveType, Predicate<QuestObjective> predicate){
-		List<QuestObjective> objStream = this.objectiveMapping.get(objectiveType);
-		if(objStream == null) {
-			objStream = this.objectives.stream()
-				.<QuestObjective>flatMap(o -> o instanceof SequentialQuestObjective? ((SequentialQuestObjective)o).getObjectives().stream() : Stream.<QuestObjective>of(o))
-				.filter(predicate)
-				.filter(o -> !o.isCompleted())
-				.collect(Collectors.toList());
-			this.objectiveMapping.put(objectiveType, objStream);
-		}
-		
-		return objStream.stream();
 	}
 	
 	public float getPercentage() {
@@ -148,5 +140,19 @@ public abstract class Quest implements IObjectiveParent {
 	
 	public boolean checkForStartConditions(EntityPlayer player) {
 		return true;
+	}
+	
+	private float calcPercentage() {
+		return this.objectives.stream().map(o -> o.getPercentage()).reduce(0f, Float::sum)/(float)this.objectives.size();
+	}
+
+	@Override
+	public void subscribeObjectives(QuestObjective... objectives) {
+		props.subscribeObjectives(objectives);
+	}
+
+	@Override
+	public void unsubscribeObjectives(QuestObjective... objectives) {
+		props.unsubscribeObjectives(objectives);
 	}
 }

@@ -5,5 +5,5 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
 
 public interface IHitCounterQuestObjective {
-	boolean onHitEntity(EntityPlayer player, EntityLivingBase target, DamageSource source);
+	public void onHitEntity(EntityPlayer player, EntityLivingBase target, DamageSource source);
 }

@@ -16,17 +16,25 @@ import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
 import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
 import xyz.pixelatedw.MineMineNoMi3.items.weapons.ItemCoreWeapon;
 import xyz.pixelatedw.MineMineNoMi3.lists.ListQuests;
+import xyz.pixelatedw.MineMineNoMi3.quests.DefaultSequentialQuestObjectives;
 import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
 import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.SequentialQuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.SyncField;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IKillEntityQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.ITimedQuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSensei;
 
 public class QuestSwordsmanProgression02 extends Quest {
 
 	public QuestSwordsmanProgression02() {
 		super("Staying Alive", "");
-		addObjective(new AwaitForNightAndDayObjective());
+		addSequentialObjectives(
+			new AwaitForTheNightObjective(),
+			new Kill25MonstersObjective(),
+			new AwaitForTheSunriseObjective(),
+			new InteractWithSensei("Go talk with sensei", "")
+		);
 	}
 	
 	@Override
@@ -54,23 +62,28 @@ public class QuestSwordsmanProgression02 extends Quest {
 		}
 	}
 	
-	class AwaitForNightAndDayObjective extends SequentialQuestObjective {
-		public AwaitForNightAndDayObjective() {
-			super(
-				"objective_02",
-				new AwaitForTheNightObjective(),
-				new Kill25MonstersObjective(),
-				new AwaitForTheSunriseObjective()
-			);
+	
+	class AwaitForTheNightObjective extends QuestObjective implements ITimedQuestObjective {
+		public AwaitForTheNightObjective() {
+			super("Await for the night", "To show to your master that you are a stronger man, survive this entire night");
+		}
+		
+		@Override
+		public void onTimePassEvent(EntityPlayer player) {
+			int dayTime = (int) (player.worldObj.getWorldTime() % 24000);
+			if((dayTime >= 12786 && dayTime <= 13000) || !player.worldObj.isDaytime()) {
+				this.markAsCompleted();
+			}
 		}
 	}
 	
 	class Kill25MonstersObjective extends QuestObjective implements IKillEntityQuestObjective {
-
+		
+		@SyncField
 		private int killQty = 0;
 		
 		public Kill25MonstersObjective() {
-			super("objective_01", "Kill 25 Mobs", "Kill 25 mobs before the night ends.");
+			super("Kill 25 Mobs", "Kill 25 mobs before the night ends.");
 		}
 		
 		@Override
@@ -92,17 +105,17 @@ public class QuestSwordsmanProgression02 extends Quest {
 				}
 			}
 		}
-
+		
 		@Override
 		public int getTargetKillQuantity() {
 			return 25;
 		}
-
+		
 		@Override
 		public int getCurrentKillQuantity() {
 			return killQty;
 		}
-
+		
 		@Override
 		public float getPercentage() {
 			return getCurrentKillQuantity()/(float)getTargetKillQuantity();
@@ -111,27 +124,13 @@ public class QuestSwordsmanProgression02 extends Quest {
 	
 	class AwaitForTheSunriseObjective extends QuestObjective implements ITimedQuestObjective {
 		public AwaitForTheSunriseObjective() {
-			super("objective_04", "Await for the sunrise", "To complete the challenge fight until the sun rises");
+			super("Await for the sunrise", "To complete the challenge fight until the sun rises");
 		}
 
 		@Override
 		public void onTimePassEvent(EntityPlayer player) {
 			int dayTime = (int) (player.worldObj.getWorldTime() % 24000);
 			if((dayTime >= 23031 && dayTime <= 23200) || player.worldObj.isDaytime()) {
-				this.markAsCompleted();
-			}
-		}
-	}
-	
-	class AwaitForTheNightObjective extends QuestObjective implements ITimedQuestObjective {
-		public AwaitForTheNightObjective() {
-			super("objective_03", "Await for the night", "To show to your master that you are a stronger man, survive this entire night");
-		}
-
-		@Override
-		public void onTimePassEvent(EntityPlayer player) {
-			int dayTime = (int) (player.worldObj.getWorldTime() % 24000);
-			if((dayTime >= 12786 && dayTime <= 13000) || !player.worldObj.isDaytime()) {
 				this.markAsCompleted();
 			}
 		}

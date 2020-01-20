@@ -35,7 +35,7 @@ public class GUIQuestList extends GuiScrollingList {
 	private int selectedIndex = -1;
 	
 	public GUIQuestList(GUIPlayerQuests parent, QuestProperties props) {
-		super(parent.mc, 235, 300, parent.yCenter - 72, parent.yCenter + 72, parent.xStart + 139,30);
+		super(parent.mc, 235, 300, parent.yCenter - 72, parent.yCenter + 72, parent.xStart + 139,38);
 		this.parent = parent;
 		this.props = props;
 		this.currentQuest = this.props.getCurrentQuest();
@@ -48,7 +48,7 @@ public class GUIQuestList extends GuiScrollingList {
 	}
 
 	protected int getContentHeight() {
-		return Math.max((this.getSize()) * 30 + 1, this.bottom - this.top - 3);
+		return Math.max((this.getSize()) * 38 + 1, this.bottom - this.top - 3);
 		//return Math.max((this.getSize()) * 30 + 1, this.listHeight);
 	}
 
@@ -83,15 +83,17 @@ public class GUIQuestList extends GuiScrollingList {
 		FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
 		if(attr instanceof Quest) {
 			Quest quest = (Quest) attr;
-			parent.drawRect(left, slotTop-2, left + listWidth - 6, slotTop + slotHeight + 1, 0xffcccccc);
-			parent.drawRect(left+1, slotTop-1, left + listWidth - 7, slotTop + slotHeight, 0xff444444);
+			parent.drawRect(left, slotTop-1, left + listWidth - 6, slotTop + slotHeight + 1, 0xff666666);
+			parent.drawRect(left+1, slotTop, left + listWidth - 7, slotTop + slotHeight, 0xff444444);
+			
+			parent.drawRect(left+4, slotTop + 2, left + 34, slotTop + slotHeight - 4, 0xff333333);
 			if(quest.isCompleted()) {
 				//fontRenderer.drawSplitString(quest.getTitle(), this.left + 2, slotTop + 5, this.listWidth - 8, 0xFF11FF11);
-				fontRenderer.drawSplitString(quest.getTitle(), this.left + 4, slotTop + 2, this.listWidth - 8, 0xFFccffcc);
-				fontRenderer.drawStringWithShadow("Completed", this.left + 8, slotTop + 20, 0xFF11FF11);
+				fontRenderer.drawSplitString(quest.getTitle(), this.left + 38, slotTop + 4, this.listWidth - 45, 0xFFccffcc);
+				fontRenderer.drawStringWithShadow("Completed", this.left + 38, slotTop + 26, 0xFF11FF11);
 			}else {
-				fontRenderer.drawSplitString(quest.getTitle(), this.left + 4, slotTop + 2, this.listWidth - 8, 0xFFffffff);
-				fontRenderer.drawStringWithShadow(String.format("Progress: %2.0f%%", quest.getPercentage()*100), this.left + 8, slotTop + 20, 0xFFcccccc);
+				fontRenderer.drawSplitString(quest.getTitle(), this.left + 38, slotTop + 4, this.listWidth - 45, 0xFFffffff);
+				fontRenderer.drawStringWithShadow(String.format("Progress: %2.0f%%", quest.getPercentage()*100), this.left + 38, slotTop + 26, 0xFFcccccc);
 			}
 		}else if(attr instanceof String) {
 			GL11.glColor3f(1, 1, 1);

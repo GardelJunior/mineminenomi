@@ -1,11 +1,16 @@
 package xyz.pixelatedw.MineMineNoMi3.api.quests;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.google.common.collect.Lists;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -19,6 +24,7 @@ import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestSync;
 import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
 import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
 import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.SequentialQuestObjective;
 
 public class QuestProperties implements IExtendedEntityProperties {
 
@@ -30,10 +36,13 @@ public class QuestProperties implements IExtendedEntityProperties {
 	private List<Quest> quests = new ArrayList<Quest>();
 	private List<Quest> completedQuests = new ArrayList<Quest>();
 	
+	private Map<Class, List<QuestObjective>> eventSubscriptions;
+	
 	private Quest currentQuest;
 	
 	public QuestProperties(EntityPlayer entity) {
 		this.thePlayer = entity;
+		this.eventSubscriptions = new WeakHashMap<Class, List<QuestObjective>>();
 	}
 	
 	public EntityPlayer getPlayer() {
@@ -55,7 +64,50 @@ public class QuestProperties implements IExtendedEntityProperties {
 	public List<Quest> getQuests(){
 		return this.quests;
 	}
+	
+	public void subscribeObjectives(List<QuestObjective> objectives) {
+		subscribeObjectives(objectives.toArray(new QuestObjective[objectives.size()]));
+	}
+	
+	public void unsubscribeObjectives(List<QuestObjective> objectives) {
+		unsubscribeObjectives(objectives.toArray(new QuestObjective[objectives.size()]));
+	}
+	
+	public void subscribeObjectives(QuestObjective... objectives) {
+		flattenObjectives(objectives).forEach(objective -> {
+			System.out.println("Subscribing for " + objective.getTitle());
+			System.out.println("A classe " + objective.getClass().getTypeName() +" contem " + objective.getClass().getInterfaces().length +" interfaces!");
+			for(Class interfac : objective.getClass().getInterfaces()) {
+				List<QuestObjective> typeQuestObjective = this.eventSubscriptions.get(interfac);
+				System.out.println("Subscribing the interface " + interfac.getTypeName());
+				if(typeQuestObjective == null) {
+					typeQuestObjective = new ArrayList<QuestObjective>();
+					typeQuestObjective.add(objective);
+					this.eventSubscriptions.put(interfac, typeQuestObjective);
+					System.out.println("Registering");
+				}else {
+					typeQuestObjective.add(objective);
+					System.out.println("Just adding");
+				}
+			}
+		});
+	}
+	
+	public void unsubscribeObjectives(QuestObjective... objectives) {
+		flattenObjectives(objectives).forEach(objective -> {
+			for(Class interfac : objective.getClass().getInterfaces()) {
+				List<QuestObjective> typeQuestObjective = this.eventSubscriptions.get(interfac);
+				if(typeQuestObjective != null) {
+					typeQuestObjective.removeIf(obj -> obj.equals(obj));
+				}
+			}
+		});
+	}
 
+	public <T> List<T> getObjectivesByType(Class type) {
+		return Optional.ofNullable(eventSubscriptions.get(type)).orElse(Collections.EMPTY_LIST);
+	}
+	
 	public void saveNBTData(NBTTagCompound compound) {
 		NBTTagList questsTag = new NBTTagList();
 		NBTTagList completedQuestsTag = new NBTTagList();
@@ -78,6 +130,7 @@ public class QuestProperties implements IExtendedEntityProperties {
 		
 		this.completedQuests.clear();
 		this.quests.clear();
+		this.eventSubscriptions.clear();
 		this.currentQuest = null;
 		
 		for(int i = 0 ; i < questList.tagCount() ; i++) {
@@ -109,6 +162,8 @@ public class QuestProperties implements IExtendedEntityProperties {
 		String questID = props.getString("currentQuestID");
 		if(!questID.equals("null")) {
 			this.currentQuest = this.quests.stream().filter(quest -> quest.getQuestID().equals(questID)).findFirst().orElse(null);
+			if(!thePlayer.worldObj.isRemote) 
+				subscribeObjectives(this.currentQuest.getObjectives());
 		}
 	}
 	
@@ -146,9 +201,10 @@ public class QuestProperties implements IExtendedEntityProperties {
 	public boolean completeQuest(Quest quest) {
 		if(hasQuest(quest)) {
 			currentQuest = null;
-			Quest removedQuest = removeQuest(quest);
+			unsubscribeObjectives(quest.getObjectives());
 			quest.onQuestFinish(thePlayer);
-			this.completedQuests.add(removedQuest); 
+			Quest removedQuest = removeQuest(quest);
+			completedQuests.add(removedQuest); 
 			WyNetworkHelper.sendTo(new PacketQuestSync(this), (EntityPlayerMP) thePlayer);
 			return true;
 		}
@@ -160,8 +216,10 @@ public class QuestProperties implements IExtendedEntityProperties {
 	}
 	
 	public void setCurrentQuest(String questID) {
+		this.eventSubscriptions.clear();
 		this.currentQuest = getQuest(questID);
 		this.currentQuest.onQuestStart(thePlayer);
+		this.subscribeObjectives(this.currentQuest.getObjectives());
 		WyNetworkHelper.sendTo(new PacketQuestSync(this), (EntityPlayerMP) thePlayer);
 	}
 
@@ -207,5 +265,13 @@ public class QuestProperties implements IExtendedEntityProperties {
 
 	public void clearCompletedQuests() {
 		this.completedQuests.clear();
+	}
+	
+	private Stream<QuestObjective> flattenObjectives(QuestObjective... objectives){
+		return Stream.<QuestObjective>of(objectives).<QuestObjective>flatMap(o -> {
+			if(o instanceof SequentialQuestObjective)
+				return ((SequentialQuestObjective)o).getObjectives().stream();
+			return Stream.of(o);
+		});
 	}
 }

@@ -17,10 +17,14 @@ public abstract class QuestObjective {
 	
 	protected IObjectiveParent questParent;
 	
-	public QuestObjective(String id, String title, String description) {
-		this.id = id;
+	public QuestObjective(String title, String description) {
 		this.title = title;
 		this.description = description;
+	}
+	
+	public QuestObjective withId(String id) {
+		this.id = id;
+		return this;
 	}
 	
 	public boolean isCompleted() {
@@ -58,10 +62,9 @@ public abstract class QuestObjective {
 
 	public void saveToNBT(NBTTagCompound tag) {
 		try {
-			//Using reflection to auto serialize all the fields data
+			//Using reflection to serialize all the fields data
 			for(Field field : getClass().getDeclaredFields()) {
-				if(field.getAnnotationsByType(IgnoreField.class).length==0 && !field.getName().equals("this$0")) {
-					System.out.println("Saving field " + field.getName());
+				if(field.getAnnotationsByType(SyncField.class).length>0) {
 					boolean isAccessible = field.isAccessible();
 					field.setAccessible(true);
 					String fieldName = this.getId()+"_"+field.getName();
@@ -90,9 +93,9 @@ public abstract class QuestObjective {
 	
 	public void loadFromNBT(NBTTagCompound tag) {
 		try {
-			//Using reflection to auto load all the fields data
+			//Using reflection to load all the fields data
 			for(Field field : getClass().getDeclaredFields()) {
-				if(field.getAnnotationsByType(IgnoreField.class).length==0) {
+				if(field.getAnnotationsByType(SyncField.class).length>0) {
 					boolean isAccessible = field.isAccessible();
 					field.setAccessible(true);
 					String fieldName = this.getId()+"_"+field.getName();
@@ -117,10 +120,6 @@ public abstract class QuestObjective {
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public boolean completionCanChange() {
-		return false;
 	}
 	
 	public QuestObjective withParent(IObjectiveParent parent) {

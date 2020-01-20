@@ -1,29 +1,46 @@
 package xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression;
 
-/*
-public class QuestSwordsmanProgression03 extends Quest implements IHitCounterQuestObjective, IProgressionQuest {
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.util.DamageSource;
+import xyz.pixelatedw.MineMineNoMi3.MainConfig;
+import xyz.pixelatedw.MineMineNoMi3.abilities.SwordsmanAbilities;
+import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
+import xyz.pixelatedw.MineMineNoMi3.api.abilities.extra.AbilityProperties;
+import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
+import xyz.pixelatedw.MineMineNoMi3.entities.mobs.quest.givers.EntityDojoSensei;
+import xyz.pixelatedw.MineMineNoMi3.items.weapons.ItemCoreWeapon;
+import xyz.pixelatedw.MineMineNoMi3.quests.DefaultSequentialQuestObjectives;
+import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
+import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.SyncField;
+import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IEntityInterationQuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IHitCounterQuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSensei;
+
+public class QuestSwordsmanProgression03 extends Quest {
+
+	public QuestSwordsmanProgression03(String title, String description) {
+		super("The Fruits of Training", "For my last test I need to deal 25 critical hits. I need to focus on my movement and the enemy to successfully deal them.");
+		addSequentialObjectives(
+			new Do25CriticalHitsObjective(),
+			new InteractWithSensei("Go talk with the sensei", "")
+		);
+	}
 
 	public String getQuestID() {
 		return "swordsmanprogression03";
 	}
-
-	public String getQuestName() {
-		return "The Fruits of Training";
+	
+	@Override
+	public void onQuestStart(EntityPlayer player) {
+		
 	}
-
-	public String[] getQuestDescription() {
-		return new String[] { " For my last test I need to deal 25 critical hits.",
-				"I need to focus on my movement and the enemy to", "successfully deal them.", "", "", "", "" };
-	}
-
-	public void startQuest(EntityPlayer player) {
-		this.extraData = new NBTTagCompound();
-		this.extraData.setBoolean("isCompleted",false);
-		this.extraData.setInteger("hits",0);
-		super.startQuest(player);
-	}
-
-	public void finishQuest(EntityPlayer player) {
+	
+	@Override
+	public void onQuestFinish(EntityPlayer player) {
 		AbilityProperties abilityProps = AbilityProperties.get(player);
 
 		if (MainConfig.enableQuestProgression) {
@@ -35,59 +52,38 @@ public class QuestSwordsmanProgression03 extends Quest implements IHitCounterQue
 			ExtendedEntityData eed = ExtendedEntityData.get(player);
 			eed.setDoriki(eed.getDoriki() + 100);
 		}
-
-		super.finishQuest(player);
 	}
 
-	public boolean canStart(EntityPlayer player) {
-		ExtendedEntityData props = ExtendedEntityData.get(player);
-		QuestProperties questProps = QuestProperties.get(player);
+	class Do25CriticalHitsObjective extends QuestObjective implements IHitCounterQuestObjective {
 
-		boolean flag1 = !props.isSwordsman() || !questProps.hasQuestCompleted(ListQuests.swordsmanProgression02);
-
-		if (flag1)
-			return false;
-
-		return true;
-	}
-
-	public double getMaxProgress() {
-		return 25;
-	}
-
-	public boolean isPrimary() {
-		return true;
-	}
-
-	public EnumQuestlines getQuestLine() {
-		return EnumQuestlines.SWORDSMAN_PROGRESSION;
-	}
-
-	public boolean isRepeatable() {
-		return false;
-	}
-
-	public boolean checkHit(EntityPlayer player, EntityLivingBase target, DamageSource source) {
-		ItemStack heldItem = player.getHeldItem();
-
-		boolean flag = player.fallDistance > 0.0F && !player.onGround && !player.isOnLadder() && !player.isInWater()
-				&& !player.isRiding() && heldItem != null
-				&& (heldItem.getItem() instanceof ItemCoreWeapon || heldItem.getItem() instanceof ItemSword);
-
-		if (flag) {
-			if(this.extraData.getInteger("hits") < 25) {
-				this.extraData.setInteger("hits",this.extraData.getInteger("hits")+1);
-			}
-			if(this.extraData.getInteger("hits") >= 25 && !this.extraData.getBoolean("isCompleted")) {
-				this.extraData.setBoolean("isCompleted",true);
-				WyNetworkHelper.sendTo(new PacketQuestHint(), (EntityPlayerMP) player);
-				WyHelper.sendMsgToPlayer(player, "§aThe quest §6[" + getQuestName() + "]§a has been completed! Time to back to the Dojo.");
-			}
-			return true;
+		@SyncField
+		private int hits = 0;
+		
+		public Do25CriticalHitsObjective() {
+			super("Do 25 critical hits", "");
 		}
 
-		return false;
-	}
+		@Override
+		public void onHitEntity(EntityPlayer player, EntityLivingBase target, DamageSource source) {
+			ItemStack heldItem = player.getHeldItem();
 
+			boolean wasCritialHit = player.fallDistance > 0.0F && !player.onGround && !player.isOnLadder() && !player.isInWater()
+					&& !player.isRiding() && heldItem != null
+					&& (heldItem.getItem() instanceof ItemCoreWeapon || heldItem.getItem() instanceof ItemSword);
+
+			
+			
+			if (wasCritialHit) {
+				if(hits < 25) 
+					hits++;
+				if(hits == 25) 
+					this.markAsCompleted();
+			}
+		}
+
+		@Override
+		public String getTitle() {
+			return super.getTitle() + " (" + hits +"/25)";
+		}
+	}
 }
-*/

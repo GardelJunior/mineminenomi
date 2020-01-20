@@ -1,30 +1,49 @@
 package xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression;
 
-/*public class QuestSwordsmanProgression04 extends Quest implements IKillQuest, IProgressionQuest {
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemSword;
+import xyz.pixelatedw.MineMineNoMi3.MainConfig;
+import xyz.pixelatedw.MineMineNoMi3.abilities.SwordsmanAbilities;
+import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
+import xyz.pixelatedw.MineMineNoMi3.api.abilities.extra.AbilityProperties;
+import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestHint;
+import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
+import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
+import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
+import xyz.pixelatedw.MineMineNoMi3.items.weapons.ItemCoreWeapon;
+import xyz.pixelatedw.MineMineNoMi3.lists.ListQuests;
+import xyz.pixelatedw.MineMineNoMi3.quests.EnumQuestlines;
+import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
+import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.SyncField;
+import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IKillEntityQuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSensei;
+
+public class QuestSwordsmanProgression04 extends Quest {
+
+	public QuestSwordsmanProgression04(String title, String description) {
+		super("The Carnage", "My sensei told me that for the next skill I would need a lot of stamina. I must train more with my sword. ");
+		addSequentialObjectives(
+			new Kill50MobsObjective(),
+			new InteractWithSensei("Go talk with the sensei", "")
+		);
+	}
 
 	public String getQuestID() {
 		return "swordsmanprogression04";
 	}
 
-	public String getQuestName() {
-		return "The Carnage";
+	@Override
+	public void onQuestStart(EntityPlayer player) {
+		
 	}
 
-	
-	 
-	public String[] getQuestDescription() {
-		return new String[] { "My sensei told me that for the next skill I would need a lot of stamina.",
-				"I must train more with my sword. ", "# Objective:", " - Kill 50 mobs", "# Rewards:", " - Yakkudori", " - 200 doriki" };
-	}
-
-	public void startQuest(EntityPlayer player) {
-		this.extraData = new NBTTagCompound();
-		this.extraData.setBoolean("isCompleted",false);
-		this.extraData.setLong("killedMobs",0);
-		super.startQuest(player);
-	}
-
-	public void finishQuest(EntityPlayer player) {
+	@Override
+	public void onQuestFinish(EntityPlayer player) {
 		AbilityProperties abilityProps = AbilityProperties.get(player);
 
 		if (MainConfig.enableQuestProgression) {
@@ -36,56 +55,42 @@ package xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression;
 			ExtendedEntityData eed = ExtendedEntityData.get(player);
 			eed.setDoriki(eed.getDoriki() + 200);
 		}
-
-		super.finishQuest(player);
 	}
+	
+	
+	class Kill50MobsObjective extends QuestObjective implements IKillEntityQuestObjective {
 
-	public boolean canStart(EntityPlayer player) {
-		ExtendedEntityData props = ExtendedEntityData.get(player);
-		QuestProperties questProps = QuestProperties.get(player);
-
-		boolean flag1 = !props.isSwordsman() || !questProps.hasQuestCompleted(ListQuests.swordsmanProgression03);
-
-		if (flag1)
-			return false;
-
-		return true;
-	}
-
-	public double getMaxProgress() {
-		return 50;
-	}
-
-	public boolean isPrimary() {
-		return true;
-	}
-
-	public EnumQuestlines getQuestLine() {
-		return EnumQuestlines.SWORDSMAN_PROGRESSION;
-	}
-
-	public boolean isRepeatable() {
-		return false;
-	}
-
-	@Override
-	public boolean isTarget(EntityPlayer player, EntityLivingBase target) {
-		final Item heldItem = player.getHeldItem().getItem();
-		if(target instanceof EntityMob && (heldItem instanceof ItemCoreWeapon || heldItem instanceof ItemSword)) {
-			if (this.extraData.getLong("killedMobs") < 50) {
-				this.extraData.setLong("killedMobs", this.extraData.getLong("killedMobs") + 1);
-			}
-			if(this.extraData.getLong("killedMobs") == 50 && !this.extraData.getBoolean("isCompleted")) {
-				this.extraData.setBoolean("isCompleted",true);
-				if(!player.worldObj.isRemote) {
-					WyNetworkHelper.sendTo(new PacketQuestHint(), (EntityPlayerMP) player);
-					WyHelper.sendMsgToPlayer(player, "§aThe quest §6[" + getQuestName() + "]§a has been completed! Time to back to the Dojo.");
-				}
-			}
-			return true;
+		@SyncField
+		private int killQtd = 0;
+		
+		public Kill50MobsObjective() {
+			super("Kill 50 mobs", "");
 		}
-		return false;
-	}
 
+		@Override
+		public void onKillEntity(EntityPlayer player, EntityLivingBase target) {
+			final Item heldItem = player.getHeldItem().getItem();
+			if(target instanceof EntityMob && (heldItem instanceof ItemCoreWeapon || heldItem instanceof ItemSword)) {
+				if (killQtd < 50)
+					killQtd++;
+				if(killQtd == 50) 
+					this.markAsCompleted();
+			}
+		}
+		
+		@Override
+		public String getTitle() {
+			return super.getTitle() + "(" + getCurrentKillQuantity() + "/"+ getTargetKillQuantity() +")";
+		}
+
+		@Override
+		public int getTargetKillQuantity() {
+			return 50;
+		}
+
+		@Override
+		public int getCurrentKillQuantity() {
+			return killQtd;
+		}
+	}
 }
-*/

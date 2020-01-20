@@ -26,10 +26,7 @@ public class GUIPlayerQuests extends GuiPage {
 	private GUIQuestList questList;
 	private QuestProperties props;
 	
-	private boolean hideList;
-	private float hideInterpolation = 0;
 	private int screenIndex = QUEST_LIST;
-	private int screenTarget = QUEST_LIST;
 
 	public GUIPlayerQuests(GUIPlayer gui) {
 		super();

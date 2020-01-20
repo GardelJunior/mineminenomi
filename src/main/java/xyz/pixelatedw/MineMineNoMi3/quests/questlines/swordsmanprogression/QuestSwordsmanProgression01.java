@@ -26,6 +26,7 @@ import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.SequentialQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IEntityInterationQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IKillEntityQuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSensei;
 
 public class QuestSwordsmanProgression01 extends Quest {
 
@@ -34,12 +35,9 @@ public class QuestSwordsmanProgression01 extends Quest {
 			"Road to becoming the Best Swordsman",
 			"I am beginning my journey to become the best swordsman in the world. I need to start somewhere, maybe in a dojo."
 		);
-		addObjective(
-			new DefaultSequentialQuestObjectives(
-				"objective_00",
-				new FindAnDojoSenseiObjective(),
-				new FindBetterWeaponObjective()
-			)
+		addSequentialObjectives(
+			new InteractWithSensei("Find an Sensei", "Search for nearby dojo's and talk with an swordsman master."),
+			new FindBetterWeaponObjective()
 		);
 	}
 
@@ -60,24 +58,10 @@ public class QuestSwordsmanProgression01 extends Quest {
 		props.addQuest(new QuestSwordsmanProgression02());
 	}
 	
-	class FindAnDojoSenseiObjective extends QuestObjective implements IEntityInterationQuestObjective {
-
-		public FindAnDojoSenseiObjective() {
-			super("objective_01", "Find an Sensei", "Search for nearby dojo's and talk with an swordsman master.");
-		}
-
-		@Override
-		public void onInteractWith(EntityPlayer player, EntityLivingBase target) {
-			if(target instanceof EntityDojoSensei) {
-				this.markAsCompleted();
-			}
-		}
-	}
-	
 	class FindBetterWeaponObjective extends QuestObjective implements IEntityInterationQuestObjective {
 
 		public FindBetterWeaponObjective() {
-			super("objective_02", "Acquire an sword", "Return to the Dojo when you acquire a sword with damage greater than or equal to 7.");
+			super("Acquire an sword", "Return to the Dojo when you acquire a sword with damage greater than or equal to 7.");
 		}
 
 		@Override

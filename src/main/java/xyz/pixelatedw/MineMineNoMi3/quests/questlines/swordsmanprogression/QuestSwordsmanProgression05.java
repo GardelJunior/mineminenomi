@@ -1,28 +1,51 @@
 package xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression;
 
-/*public class QuestSwordsmanProgression05 extends Quest implements IKillQuest, IProgressionQuest {
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemSword;
+import net.minecraft.nbt.NBTTagCompound;
+import xyz.pixelatedw.MineMineNoMi3.MainConfig;
+import xyz.pixelatedw.MineMineNoMi3.abilities.SwordsmanAbilities;
+import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
+import xyz.pixelatedw.MineMineNoMi3.api.abilities.extra.AbilityProperties;
+import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestHint;
+import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
+import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
+import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
+import xyz.pixelatedw.MineMineNoMi3.entities.mobs.marines.EntityMarineCaptain;
+import xyz.pixelatedw.MineMineNoMi3.entities.mobs.pirates.EntityPirateCaptain;
+import xyz.pixelatedw.MineMineNoMi3.items.weapons.ItemCoreWeapon;
+import xyz.pixelatedw.MineMineNoMi3.lists.ListQuests;
+import xyz.pixelatedw.MineMineNoMi3.quests.EnumQuestlines;
+import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
+import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.SyncField;
+import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IKillEntityQuestObjective;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSensei;
+
+public class QuestSwordsmanProgression05 extends Quest {
+
+	public QuestSwordsmanProgression05() {
+		super("Stronger than Capitains", " My sensei told me to fight at extreme conditions, so.. 5 capitains will be enought?");
+		addSequentialObjectives(
+			new Kill5Capitains(),
+			new InteractWithSensei("Go talk with sensei", "")
+		);
+	}
 
 	public String getQuestID() {
 		return "swordsmanprogression05";
 	}
 
-	public String getQuestName() {
-		return "Stronger than Capitains";
+	@Override
+	public void onQuestStart(EntityPlayer player) {
+		
 	}
-
-	public String[] getQuestDescription() {
-		return new String[] { " My sensei told me to fight at extreme ",
-				"conditions, so.. 5 capitains will be enought? ", "", "", "", "", "" };
-	}
-
-	public void startQuest(EntityPlayer player) {
-		this.extraData = new NBTTagCompound();
-		this.extraData.setBoolean("isCompleted",false);
-		this.extraData.setLong("killedMobs",0);
-		super.startQuest(player);
-	}
-
-	public void finishQuest(EntityPlayer player) {
+	
+	@Override
+	public void onQuestFinish(EntityPlayer player) {
 		AbilityProperties abilityProps = AbilityProperties.get(player);
 
 		if (MainConfig.enableQuestProgression) {
@@ -34,56 +57,34 @@ package xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression;
 			ExtendedEntityData eed = ExtendedEntityData.get(player);
 			eed.setDoriki(eed.getDoriki() + 400);
 		}
-
-		super.finishQuest(player);
 	}
+	
+	class Kill5Capitains extends QuestObjective implements IKillEntityQuestObjective {
 
-	public boolean canStart(EntityPlayer player) {
-		ExtendedEntityData props = ExtendedEntityData.get(player);
-		QuestProperties questProps = QuestProperties.get(player);
-
-		boolean flag1 = !props.isSwordsman() || !questProps.hasQuestCompleted(ListQuests.swordsmanProgression04);
-
-		if (flag1)
-			return false;
-
-		return true;
-	}
-
-	public double getMaxProgress() {
-		return 5;
-	}
-
-	public boolean isPrimary() {
-		return true;
-	}
-
-	public EnumQuestlines getQuestLine() {
-		return EnumQuestlines.SWORDSMAN_PROGRESSION;
-	}
-
-	public boolean isRepeatable() {
-		return false;
-	}
-
-	@Override
-	public boolean isTarget(EntityPlayer player, EntityLivingBase target) {
-		final Item heldItem = player.getHeldItem().getItem();
-		if((target instanceof EntityPirateCaptain || target instanceof EntityMarineCaptain) && (heldItem instanceof ItemCoreWeapon || heldItem instanceof ItemSword)) {
-			if (this.extraData.getLong("killedMobs") < 5) {
-				this.extraData.setLong("killedMobs", this.extraData.getLong("killedMobs") + 1);
-			}
-			if(this.extraData.getLong("killedMobs") == 5 && !this.extraData.getBoolean("isCompleted")) {
-				this.extraData.setBoolean("isCompleted",true);
-				if(!player.worldObj.isRemote) {
-					WyNetworkHelper.sendTo(new PacketQuestHint(), (EntityPlayerMP) player);
-					WyHelper.sendMsgToPlayer(player, "§aThe quest §6[" + getQuestName() + "]§a has been completed! Time to back to the Dojo.");
-				}
-			}
-			return true;
+		@SyncField
+		private int killQtd = 0;
+		
+		public Kill5Capitains() {
+			super("Kill 5 capitains", "");
 		}
-		return false;
-	}
 
+		@Override
+		public void onKillEntity(EntityPlayer player, EntityLivingBase target) {
+			final Item heldItem = player.getHeldItem().getItem();
+			if((target instanceof EntityPirateCaptain || target instanceof EntityMarineCaptain) && (heldItem instanceof ItemCoreWeapon || heldItem instanceof ItemSword)) {
+				if(killQtd < getTargetKillQuantity()) killQtd++;
+				if(killQtd == getTargetKillQuantity()) this.markAsCompleted();
+			}
+		}
+
+		@Override
+		public int getTargetKillQuantity() {
+			return 5;
+		}
+
+		@Override
+		public int getCurrentKillQuantity() {
+			return killQtd;
+		}
+	}
 }
-*/
