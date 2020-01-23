@@ -2,6 +2,8 @@ package xyz.pixelatedw.MineMineNoMi3.gui.extra;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import org.lwjgl.opengl.GL11;
 
@@ -9,23 +11,13 @@ import cpw.mods.fml.client.GuiScrollingList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.resources.I18n;
-import xyz.pixelatedw.MineMineNoMi3.ID;
-import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
-import xyz.pixelatedw.MineMineNoMi3.api.WyRenderHelper;
-import xyz.pixelatedw.MineMineNoMi3.api.abilities.Ability;
-import xyz.pixelatedw.MineMineNoMi3.api.abilities.AbilityAttribute;
-import xyz.pixelatedw.MineMineNoMi3.api.abilities.extra.AbilityManager;
-import xyz.pixelatedw.MineMineNoMi3.api.abilities.extra.AbilityProperties;
-import xyz.pixelatedw.MineMineNoMi3.api.network.PacketAbilitySync;
 import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestSync;
 import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
-import xyz.pixelatedw.MineMineNoMi3.gui.GUIPlayerAbilities;
 import xyz.pixelatedw.MineMineNoMi3.gui.GUIPlayerQuests;
 import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
 
-public class GUIQuestList extends GuiScrollingList {
+public class GUIQuestList extends GuiScrollingList implements Observer {
 
 	private GUIPlayerQuests parent;
 	private QuestProperties props;
@@ -38,13 +30,17 @@ public class GUIQuestList extends GuiScrollingList {
 		super(parent.mc, 235, 300, parent.yCenter - 72, parent.yCenter + 72, parent.xStart + 139,38);
 		this.parent = parent;
 		this.props = props;
+		
 		this.currentQuest = this.props.getCurrentQuest();
 		availableQuests.clear();
 		
-		availableQuests.add("Quests");
+		availableQuests.add("Active Quests");
 		availableQuests.addAll(this.props.getQuests());
 		availableQuests.add("Completed Quests");
 		availableQuests.addAll(this.props.getCompletedQuests());
+		
+		props.deleteObservers();
+		props.addObserver(this);
 	}
 
 	protected int getContentHeight() {
@@ -83,17 +79,22 @@ public class GUIQuestList extends GuiScrollingList {
 		FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
 		if(attr instanceof Quest) {
 			Quest quest = (Quest) attr;
-			parent.drawRect(left, slotTop-1, left + listWidth - 6, slotTop + slotHeight + 1, 0xff666666);
-			parent.drawRect(left+1, slotTop, left + listWidth - 7, slotTop + slotHeight, 0xff444444);
+			parent.drawRect(left+2, slotTop-1, left + listWidth - 6, slotTop + slotHeight + 1, 0xff666666);
+			parent.drawRect(left+3, slotTop, left + listWidth - 7, slotTop + slotHeight, 0xff444444);
 			
-			parent.drawRect(left+4, slotTop + 2, left + 34, slotTop + slotHeight - 4, 0xff333333);
+			parent.drawRect(left+6, slotTop + 3, left + 36, slotTop + slotHeight - 3, 0xff333333);
 			if(quest.isCompleted()) {
-				//fontRenderer.drawSplitString(quest.getTitle(), this.left + 2, slotTop + 5, this.listWidth - 8, 0xFF11FF11);
-				fontRenderer.drawSplitString(quest.getTitle(), this.left + 38, slotTop + 4, this.listWidth - 45, 0xFFccffcc);
-				fontRenderer.drawStringWithShadow("Completed", this.left + 38, slotTop + 26, 0xFF11FF11);
+				parent.drawRect(left, slotTop-1, left + 2, slotTop + slotHeight + 1, 0xFF11FF11);
+				fontRenderer.drawSplitString(quest.getTitle(), this.left + 39, slotTop + 4, this.listWidth - 47, 0xFFccffcc);
+				fontRenderer.drawStringWithShadow("Completed", this.left + 39, slotTop + 26, 0xFF11FF11);
 			}else {
-				fontRenderer.drawSplitString(quest.getTitle(), this.left + 38, slotTop + 4, this.listWidth - 45, 0xFFffffff);
-				fontRenderer.drawStringWithShadow(String.format("Progress: %2.0f%%", quest.getPercentage()*100), this.left + 38, slotTop + 26, 0xFFcccccc);
+				if(props.getCurrentQuest() == quest) {
+					parent.drawRect(left, slotTop-1, left + 2, slotTop + slotHeight + 1, 0xffffff00);
+				}else {
+					parent.drawRect(left, slotTop-1, left + 2, slotTop + slotHeight + 1, 0xff999999);
+				}
+				fontRenderer.drawSplitString(quest.getTitle(), this.left + 39, slotTop + 4, this.listWidth - 47, 0xFFffffff);
+				fontRenderer.drawStringWithShadow(String.format("Progress: %2.0f%%", quest.getPercentage()*100), this.left + 39, slotTop + 26, 0xFFcccccc);
 			}
 		}else if(attr instanceof String) {
 			GL11.glColor3f(1, 1, 1);
@@ -104,7 +105,7 @@ public class GUIQuestList extends GuiScrollingList {
 			GL11.glPopMatrix();*/
 			parent.drawRect(left, slotTop+1, left + listWidth - 6, slotTop + slotHeight - 1, 0xff333333);
 			parent.drawRect(left, slotTop+2, left + listWidth - 6, slotTop + slotHeight - 2, 0xff000000);
-			fontRenderer.drawStringWithShadow((String)attr, this.left + (this.listWidth-6)/2 - fontRenderer.getStringWidth((String)attr)/2, slotTop + 9, 0xFFFFFF00);
+			fontRenderer.drawStringWithShadow((String)attr, this.left + (this.listWidth-6)/2 - fontRenderer.getStringWidth((String)attr)/2, slotTop + 14, 0xFFFFFF00);
 		}
 	}
 
@@ -119,5 +120,15 @@ public class GUIQuestList extends GuiScrollingList {
 		}else {
 			return null;
 		}
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		this.currentQuest = this.props.getCurrentQuest();
+		availableQuests.clear();
+		availableQuests.add("Active Quests");
+		availableQuests.addAll(this.props.getQuests());
+		availableQuests.add("Completed Quests");
+		availableQuests.addAll(this.props.getCompletedQuests());
 	}
 }

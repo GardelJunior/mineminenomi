@@ -64,7 +64,7 @@ public abstract class QuestObjective {
 		try {
 			//Using reflection to serialize all the fields data
 			for(Field field : getClass().getDeclaredFields()) {
-				if(field.getAnnotationsByType(SyncField.class).length>0) {
+				if(field.getDeclaredAnnotation(SyncField.class) != null) {
 					boolean isAccessible = field.isAccessible();
 					field.setAccessible(true);
 					String fieldName = this.getId()+"_"+field.getName();
@@ -95,7 +95,7 @@ public abstract class QuestObjective {
 		try {
 			//Using reflection to load all the fields data
 			for(Field field : getClass().getDeclaredFields()) {
-				if(field.getAnnotationsByType(SyncField.class).length>0) {
+				if(field.getDeclaredAnnotation(SyncField.class) != null) {
 					boolean isAccessible = field.isAccessible();
 					field.setAccessible(true);
 					String fieldName = this.getId()+"_"+field.getName();

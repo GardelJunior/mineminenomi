@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
 import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.function.Predicate;
@@ -26,7 +27,7 @@ import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
 import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.SequentialQuestObjective;
 
-public class QuestProperties implements IExtendedEntityProperties {
+public class QuestProperties extends Observable implements IExtendedEntityProperties {
 
 	public final static String EXT_QUESTPROP_NAME = ID.PROJECT_ID + "_QuestIEEP";
 	private final EntityPlayer thePlayer;
@@ -165,6 +166,9 @@ public class QuestProperties implements IExtendedEntityProperties {
 			if(!thePlayer.worldObj.isRemote) 
 				subscribeObjectives(this.currentQuest.getObjectives());
 		}
+		
+		this.setChanged();
+		this.notifyObservers();
 	}
 	
 	public List<Quest> filterQuestByObjectives(Predicate<? super Quest> predicate){
@@ -218,9 +222,11 @@ public class QuestProperties implements IExtendedEntityProperties {
 	public void setCurrentQuest(String questID) {
 		this.eventSubscriptions.clear();
 		this.currentQuest = getQuest(questID);
-		this.currentQuest.onQuestStart(thePlayer);
-		this.subscribeObjectives(this.currentQuest.getObjectives());
-		WyNetworkHelper.sendTo(new PacketQuestSync(this), (EntityPlayerMP) thePlayer);
+		if(this.currentQuest != null) {
+			this.currentQuest.onQuestStart(thePlayer);
+			this.subscribeObjectives(this.currentQuest.getObjectives());
+			WyNetworkHelper.sendTo(new PacketQuestSync(this), (EntityPlayerMP) thePlayer);
+		}
 	}
 
 	public Quest getCurrentQuest() {

@@ -50,8 +50,8 @@ public abstract class Quest implements IObjectiveParent {
 	
 	protected void addSequentialObjectives(QuestObjective...objectives) {
 		for(QuestObjective qo : objectives) qo.withId("obj_"+objectiveIndexer++);
-		final SequentialQuestObjective sqo = (SequentialQuestObjective) new DefaultSequentialQuestObjectives(objectives).withId("seq_obj_"+sequentialIndexer++);
-		this.objectives.add(sqo.withParent(this));
+		final SequentialQuestObjective sqo = new DefaultSequentialQuestObjectives(objectives);
+		this.objectives.add(sqo.withParent(this).withId("seq_obj_"+(sequentialIndexer++)));
 	}
 	
 	public void saveToNBT(NBTTagList tag) {

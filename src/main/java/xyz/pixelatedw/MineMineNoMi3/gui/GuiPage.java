@@ -24,6 +24,10 @@ abstract class GuiPage extends GuiScreen {
 		super.mouseClicked(x, y, button);
 	}
 	
+	public void onUpdate() {
+		
+	}
+	
 	public abstract void render(int mouseX, int mouseY, float f);
 	
 	public abstract String getPageName();

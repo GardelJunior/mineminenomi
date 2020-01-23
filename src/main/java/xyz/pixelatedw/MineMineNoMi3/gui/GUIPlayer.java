@@ -3,6 +3,8 @@ package xyz.pixelatedw.MineMineNoMi3.gui;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import org.lwjgl.opengl.GL11;
 
@@ -24,6 +26,7 @@ import xyz.pixelatedw.MineMineNoMi3.ID;
 import xyz.pixelatedw.MineMineNoMi3.MainConfig;
 import xyz.pixelatedw.MineMineNoMi3.MainMod;
 import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
+import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
 import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
 import xyz.pixelatedw.MineMineNoMi3.helpers.DevilFruitsHelper;
 import xyz.pixelatedw.MineMineNoMi3.items.AkumaNoMi;
@@ -59,6 +62,7 @@ public class GUIPlayer extends GuiScreen {
 		//ESC or E or R
 		if(action == 1 || action==18 || action == 19) {
 			if(!alternativeInit) props.setGuiPage(this.pages.indexOf(currentPage));
+			QuestProperties.get(this.player).deleteObservers();
             this.mc.displayGuiScreen((GuiScreen)null);
             this.mc.setIngameFocus();
 		}
