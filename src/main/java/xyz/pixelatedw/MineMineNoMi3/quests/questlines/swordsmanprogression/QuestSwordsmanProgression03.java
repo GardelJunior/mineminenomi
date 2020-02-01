@@ -18,7 +18,7 @@ import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.SyncField;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IEntityInterationQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IHitCounterQuestObjective;
-import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSensei;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSenseiObjective;
 
 public class QuestSwordsmanProgression03 extends Quest {
 
@@ -26,7 +26,7 @@ public class QuestSwordsmanProgression03 extends Quest {
 		super("The Fruits of Training", "For my last test I need to deal 25 critical hits. I need to focus on my movement and the enemy to successfully deal them.");
 		addSequentialObjectives(
 			new Do25CriticalHitsObjective(),
-			new InteractWithSensei("Go talk with the sensei", "")
+			new InteractWithSenseiObjective("Go talk with the sensei", "")
 		);
 	}
 
@@ -70,14 +70,10 @@ public class QuestSwordsmanProgression03 extends Quest {
 			boolean wasCritialHit = player.fallDistance > 0.0F && !player.onGround && !player.isOnLadder() && !player.isInWater()
 					&& !player.isRiding() && heldItem != null
 					&& (heldItem.getItem() instanceof ItemCoreWeapon || heldItem.getItem() instanceof ItemSword);
-
-			
 			
 			if (wasCritialHit) {
-				if(hits < 25) 
-					hits++;
-				if(hits == 25) 
-					this.markAsCompleted();
+				hits++;
+				if(hits == 25) this.markAsCompleted();
 			}
 		}
 

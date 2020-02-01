@@ -21,7 +21,7 @@ import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
 import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.SyncField;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IKillEntityQuestObjective;
-import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSensei;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSenseiObjective;
 
 public class QuestSwordsmanProgression04 extends Quest {
 
@@ -29,7 +29,7 @@ public class QuestSwordsmanProgression04 extends Quest {
 		super("The Carnage", "My sensei told me that for the next skill I would need a lot of stamina. I must train more with my sword. ");
 		addSequentialObjectives(
 			new Kill50MobsObjective(),
-			new InteractWithSensei("Go talk with the sensei", "")
+			new InteractWithSenseiObjective("Go talk with the sensei", "")
 		);
 	}
 

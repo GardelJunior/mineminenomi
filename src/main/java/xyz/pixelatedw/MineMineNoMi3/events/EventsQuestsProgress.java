@@ -1,6 +1,5 @@
 package xyz.pixelatedw.MineMineNoMi3.events;
 
-import java.util.Iterator;
 import java.util.List;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -9,14 +8,18 @@ import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.EntityInteractEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import xyz.pixelatedw.MineMineNoMi3.MainConfig;
 import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestSync;
@@ -24,6 +27,7 @@ import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
 import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
 import xyz.pixelatedw.MineMineNoMi3.entities.mobs.bandits.EntityBandit;
+import xyz.pixelatedw.MineMineNoMi3.helpers.QuestHelper;
 import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IBiomeQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IEntityInterationQuestObjective;
@@ -78,9 +82,15 @@ public class EventsQuestsProgress {
 			}
 			
 			if (target instanceof EntityCow) {
-				questProps.addQuest(new QuestSwordsmanProgression01());
-				questProps.setCurrentQuest("swordsmanprogression01");
-				System.out.println("Quest Adicionada [Servidor]");
+				player.inventory.addItemStackToInventory(
+						QuestHelper.generateQuestItem(
+								Items.paper, 
+								"swordsmanprogression01", 
+								"Quest: Road to becoming the Best Swordsman", 
+								"I am beginning my journey to become\nthe best swordsman in the world.\nI need to start somewhere, maybe\nin a dojo.", 
+								QuestSwordsmanProgression01.class
+						)
+				);
 			} else if(target instanceof EntityChicken) {
 				System.out.println("Quest Atual: " + questProps.getCurrentQuest());
 				System.out.println("Quests:");
@@ -88,9 +98,9 @@ public class EventsQuestsProgress {
 				System.out.println("Quests Completas:");
 				for(Quest quest : questProps.getCompletedQuests()) System.out.println(quest.getTitle());
 			} else if(target instanceof EntityBandit) {
-				questProps.addQuest(new QuestSwordsmanProgression02());
+				/*questProps.addQuest(new QuestSwordsmanProgression02());
 				questProps.setCurrentQuest("swordsmanprogression02");
-				System.out.println("Quest Adicionada [Servidor]");
+				System.out.println("Quest Adicionada [Servidor]");*/
 			}
 		}
 	}
@@ -127,26 +137,49 @@ public class EventsQuestsProgress {
 			}
 		}
 	}
+	
+	@SubscribeEvent
+	public void onInteractWithBlock(PlayerInteractEvent event) {
+		EntityPlayer player = event.entityPlayer;
+		if(player.worldObj.isRemote) return;
+		ItemStack item = player.getHeldItem();
+		if(item != null) {
+			NBTTagCompound tag = item.getTagCompound();
+			if(tag != null && tag.hasKey("quest")) {
+				NBTTagCompound quest = tag.getCompoundTag("quest");
+				QuestProperties props = QuestProperties.get(player);
+				final boolean doNotHaveThisQuest = !props.hasQuest(quest.getString("id")) && !props.hasQuestCompleted(quest.getString("id"));
+				if(doNotHaveThisQuest) {
+					try {
+						player.worldObj.playSoundAtEntity(player, "random.levelup", (float)Math.random()*0.3f + 0.2f, 1.0F);
+						Quest questObj = (Quest) Class.forName(quest.getString("class")).newInstance();
+						props.addQuest(questObj);
+						player.inventory.setInventorySlotContents(player.inventory.currentItem, (ItemStack)null);
+					}catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	@SubscribeEvent
+	public void onInteractWithItem(PlayerUseItemEvent.Start event) {
+		if(event.entityPlayer.worldObj.isRemote) return;
+	}
 
 	@SubscribeEvent
 	public void onToolTip(ItemTooltipEvent event) {
 		ItemStack itemStack = event.itemStack;
+		if (!itemStack.hasTagCompound())return;
 
-		if (!itemStack.hasTagCompound())
-			return;
+		NBTTagCompound quest = (NBTTagCompound) itemStack.getTagCompound().getTag("quest");
+		if (quest == null) return;
 
-		NBTTagCompound questLore = (NBTTagCompound) itemStack.getTagCompound().getTag("QuestLore");
-
-		if (questLore == null)
-			return;
-
-		for (int i = 0; i < 10; i++) {
-			String loreLine = questLore.getString("lore" + i);
-
-			if (WyHelper.isNullOrEmpty(loreLine))
-				continue;
-
-			event.toolTip.add(loreLine);
+		NBTTagList lore = quest.getTagList("lore", 8);
+		
+		for (int i = 0; i < lore.tagCount(); i++) {
+			event.toolTip.add(lore.getStringTagAt(i));
 		}
 	}
 }

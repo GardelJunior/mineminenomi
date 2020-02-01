@@ -16,7 +16,7 @@ import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
 import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.SyncField;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IKillEntityQuestObjective;
-import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSensei;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSenseiObjective;
 
 public class QuestSwordsmanProgression05 extends Quest {
 
@@ -24,7 +24,7 @@ public class QuestSwordsmanProgression05 extends Quest {
 		super("Stronger than Capitains", " My sensei told me to fight at extreme conditions, so.. 5 capitains will be enought?");
 		addSequentialObjectives(
 			new Kill5Capitains(),
-			new InteractWithSensei("Go talk with sensei", "")
+			new InteractWithSenseiObjective("Go talk with sensei", "")
 		);
 	}
 
@@ -65,7 +65,7 @@ public class QuestSwordsmanProgression05 extends Quest {
 		public void onKillEntity(EntityPlayer player, EntityLivingBase target) {
 			final Item heldItem = player.getHeldItem().getItem();
 			if((target instanceof EntityPirateCaptain || target instanceof EntityMarineCaptain) && (heldItem instanceof ItemCoreWeapon || heldItem instanceof ItemSword)) {
-				if(killQtd < getTargetKillQuantity()) killQtd++;
+				killQtd++;
 				if(killQtd == getTargetKillQuantity()) this.markAsCompleted();
 			}
 		}

@@ -16,11 +16,14 @@ import com.google.common.collect.Lists;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.EntityPlayer.EnumChatVisibility;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import xyz.pixelatedw.MineMineNoMi3.ID;
+import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.network.PacketQuestSync;
 import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
 import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
@@ -76,19 +79,14 @@ public class QuestProperties extends Observable implements IExtendedEntityProper
 	
 	public void subscribeObjectives(QuestObjective... objectives) {
 		flattenObjectives(objectives).forEach(objective -> {
-			System.out.println("Subscribing for " + objective.getTitle());
-			System.out.println("A classe " + objective.getClass().getTypeName() +" contem " + objective.getClass().getInterfaces().length +" interfaces!");
-			for(Class interfac : objective.getClass().getInterfaces()) {
-				List<QuestObjective> typeQuestObjective = this.eventSubscriptions.get(interfac);
-				System.out.println("Subscribing the interface " + interfac.getTypeName());
+			for(Class objectiveInterface : objective.getClass().getInterfaces()) {
+				List<QuestObjective> typeQuestObjective = this.eventSubscriptions.get(objectiveInterface);
 				if(typeQuestObjective == null) {
 					typeQuestObjective = new ArrayList<QuestObjective>();
 					typeQuestObjective.add(objective);
-					this.eventSubscriptions.put(interfac, typeQuestObjective);
-					System.out.println("Registering");
+					this.eventSubscriptions.put(objectiveInterface, typeQuestObjective);
 				}else {
 					typeQuestObjective.add(objective);
-					System.out.println("Just adding");
 				}
 			}
 		});
@@ -96,10 +94,10 @@ public class QuestProperties extends Observable implements IExtendedEntityProper
 	
 	public void unsubscribeObjectives(QuestObjective... objectives) {
 		flattenObjectives(objectives).forEach(objective -> {
-			for(Class interfac : objective.getClass().getInterfaces()) {
-				List<QuestObjective> typeQuestObjective = this.eventSubscriptions.get(interfac);
+			for(Class objectiveInterface : objective.getClass().getInterfaces()) {
+				List<QuestObjective> typeQuestObjective = this.eventSubscriptions.get(objectiveInterface);
 				if(typeQuestObjective != null) {
-					typeQuestObjective.removeIf(obj -> obj.equals(obj));
+					typeQuestObjective.removeIf(obj -> obj.equals(objective));
 				}
 			}
 		});
@@ -182,6 +180,7 @@ public class QuestProperties extends Observable implements IExtendedEntityProper
 		quest.setParent(this);
 		this.quests.add(quest);
 		WyNetworkHelper.sendTo(new PacketQuestSync(this), (EntityPlayerMP) thePlayer);
+		WyHelper.sendQuestMsgToPlayer((EntityPlayerMP) thePlayer, "New quest available: " + EnumChatFormatting.GREEN + "[" + quest.getTitle() + "]", quest.getQuestID());
 		return true;
 	}
 
@@ -192,6 +191,10 @@ public class QuestProperties extends Observable implements IExtendedEntityProper
 			return theQuest;
 		}
 		return null;
+	}
+	
+	public boolean dontHaveQuest(String questID) {
+		return !hasQuest(questID) && !hasQuestCompleted(questID);
 	}
 
 	public boolean hasQuest(Quest questTemplate) {

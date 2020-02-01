@@ -66,9 +66,9 @@ public class GUIPlayerAbilities extends GuiPage {
         	this.buttonList.add(new GUIButtonNoTexture(8, xCenter - 115, (int)(yStart * 0.6f + 55 * 0.6f), 21, 21, ""));
         }
         if(props.getUsedFruit() != null && !props.getUsedFruit().toLowerCase().equals("n/a")){
-        	if(selectedItem<0) selectedItem = 1;
         	this.buttonList.add(new GUIButtonNoTexture(9, xCenter - 115, (int)(yStart * 0.6f + 95 * 0.6f), 21, 21, ""));
         }
+        System.out.println("Selected Icon:" + selectedItem);
 	}
 
 	@Override

@@ -10,6 +10,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.entity.RenderItem;
@@ -31,6 +32,7 @@ import xyz.pixelatedw.MineMineNoMi3.api.abilities.AbilityAttribute;
 import xyz.pixelatedw.MineMineNoMi3.api.abilities.extra.AbilityProperties;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
 import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
+import xyz.pixelatedw.MineMineNoMi3.helpers.MyRenderHelper;
 import xyz.pixelatedw.MineMineNoMi3.quests.Quest;
 
 @SideOnly(Side.CLIENT)
@@ -99,17 +101,35 @@ public class EventsCombatMode extends Gui {
 		}
 
 		if (event.type == ElementType.HOTBAR) {
+			// Draws the current quest board
 			if(quests.getCurrentQuest() != null) {
+				final FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
 				Quest currentQuest = quests.getCurrentQuest();
-				GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-				this.drawRect(0, (posY - 100)/2, 80, (posY + 100)/2, 0x33000000);
-				this.drawString(Minecraft.getMinecraft().fontRenderer,currentQuest.getTitle(), 5, (posY - 100)/2 + 5, 0xffffffff);
-				for(int i = 0 ; i < currentQuest.getObjectives().size() ; i++) {
-					this.drawString(Minecraft.getMinecraft().fontRenderer,currentQuest.getObjectives().get(i).getTitle(), 10, (posY - 100)/2 + 20 + 10 * i, 0xffffffff);
+				MyRenderHelper.resetColor();
+				final List<String> titleParts = fontRenderer.listFormattedStringToWidth(currentQuest.getTitle(), 100); 
+				int height = titleParts.size() * (fontRenderer.FONT_HEIGHT + 2);
+				this.drawRect(0, (posY - 100)/2, 103, (posY - 100)/2 + height, 0xff888800);
+				GL11.glEnable(GL11.GL_BLEND);
+				OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+				int lastY = (posY - 100)/2 + 2;
+				for(String titleString : titleParts) {
+					fontRenderer.drawStringWithShadow(titleString, 2, lastY, 0xffffffff);
+					lastY += fontRenderer.FONT_HEIGHT + 2;
 				}
-				
-				GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+				lastY += 2;
+				for(int i = 0 ; i < currentQuest.getObjectives().size() ; i++) {
+					final List<String> objectiveParts = fontRenderer.listFormattedStringToWidth(currentQuest.getObjectives().get(i).getTitle(), 100);
+					final int lineHeight = (fontRenderer.FONT_HEIGHT + 2) * objectiveParts.size();
+					MyRenderHelper.drawHorizontalGradientRect(0, lastY, 51, lastY + lineHeight, this.zLevel, 0x00000000,0x55000000);
+					MyRenderHelper.drawHorizontalGradientRect(51, lastY, 103, lastY + lineHeight, this.zLevel, 0x55000000,0x00000000);
+					MyRenderHelper.renderCenteredMultilineString(objectiveParts, 0, lastY + 1, 100, 0xffffffff, false);
+					lastY += lineHeight;
+				}
+				GL11.glDisable(GL11.GL_BLEND);
+				MyRenderHelper.resetColor();
 			}
+			
+			//Draws Combat Mode
 			if (props.isInCombatMode()) {
 				event.setCanceled(true);
 				GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);

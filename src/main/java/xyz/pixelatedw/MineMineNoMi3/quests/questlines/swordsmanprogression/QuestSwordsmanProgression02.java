@@ -23,7 +23,7 @@ import xyz.pixelatedw.MineMineNoMi3.quests.SequentialQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.SyncField;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IKillEntityQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.ITimedQuestObjective;
-import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSensei;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSenseiObjective;
 
 public class QuestSwordsmanProgression02 extends Quest {
 
@@ -33,7 +33,7 @@ public class QuestSwordsmanProgression02 extends Quest {
 			new AwaitForTheNightObjective(),
 			new Kill25MonstersObjective(),
 			new AwaitForTheSunriseObjective(),
-			new InteractWithSensei("Go talk with sensei", "")
+			new InteractWithSenseiObjective("Go talk with sensei", "")
 		);
 	}
 	

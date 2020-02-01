@@ -26,7 +26,7 @@ import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.SequentialQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IEntityInterationQuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IKillEntityQuestObjective;
-import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSensei;
+import xyz.pixelatedw.MineMineNoMi3.quests.questlines.swordsmanprogression.objectives.InteractWithSenseiObjective;
 
 public class QuestSwordsmanProgression01 extends Quest {
 
@@ -36,7 +36,7 @@ public class QuestSwordsmanProgression01 extends Quest {
 			"I am beginning my journey to become the best swordsman in the world. I need to start somewhere, maybe in a dojo."
 		);
 		addSequentialObjectives(
-			new InteractWithSensei("Find an Sensei", "Search for nearby dojo's and talk with an swordsman master."),
+			new InteractWithSenseiObjective("Find an Sensei", "Search for nearby dojo's and talk with an swordsman master."),
 			new FindBetterWeaponObjective()
 		);
 	}

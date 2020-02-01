@@ -6,9 +6,9 @@ import xyz.pixelatedw.MineMineNoMi3.entities.mobs.quest.givers.EntityDojoSensei;
 import xyz.pixelatedw.MineMineNoMi3.quests.QuestObjective;
 import xyz.pixelatedw.MineMineNoMi3.quests.objectives.IEntityInterationQuestObjective;
 
-public class InteractWithSensei extends QuestObjective implements IEntityInterationQuestObjective {
+public class InteractWithSenseiObjective extends QuestObjective implements IEntityInterationQuestObjective {
 
-	public InteractWithSensei(String title, String description) {
+	public InteractWithSenseiObjective(String title, String description) {
 		super(title, description);
 	}
 

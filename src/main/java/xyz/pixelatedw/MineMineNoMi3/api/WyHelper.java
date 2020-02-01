@@ -27,10 +27,14 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.ClickEvent.Action;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -305,6 +309,13 @@ public class WyHelper {
 
 	public static void sendMsgToPlayer(EntityPlayer player, String text) {
 		player.addChatComponentMessage(new ChatComponentText(text));
+	}
+	
+	public static void sendQuestMsgToPlayer(EntityPlayer player, String text, String questID) {
+		ChatComponentText cct = new ChatComponentText(text);
+		cct.getChatStyle().setChatClickEvent(new ClickEvent(Action.RUN_COMMAND, "tell @p " + questID));
+		cct.getChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.BLUE + "Click to open the quest page")));
+		player.addChatComponentMessage(cct);
 	}
 
 	public static String upperCaseFirst(String text) {

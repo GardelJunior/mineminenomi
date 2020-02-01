@@ -39,7 +39,7 @@ public class GUIAbilitiesList extends GuiScrollingList {
 	}
 
 	protected int getContentHeight() {
-		return (this.getSize()) * 27 + 1;
+		return (Math.max(1, this.getSize())) * 27 + 1;
 	}
 
 	protected int getSize() {
