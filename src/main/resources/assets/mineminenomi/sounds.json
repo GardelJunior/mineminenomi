@@ -4,5 +4,6 @@
     "swordsman-shi-shishi-sonson": {"category": "master", "sounds":["swordsman_shishi_sonson"]},
     "swordsman-sanbyakurokuju-pound-ho": {"category": "master", "sounds":["swordsman_ittoryu_pound_ho"]},
     "swordsman-yakkodori": {"category": "master", "sounds":["swordsman_yakkodori"]},
-    "swordsman-o-tatsumaki": {"category": "master", "sounds":["swordsman_tatsumaki"]}
+    "swordsman-o-tatsumaki": {"category": "master", "sounds":["swordsman_tatsumaki"]},
+    "op-explosion": {"category": "master", "sounds":["op_explosion"]}
 }

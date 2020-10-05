@@ -6,6 +6,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
@@ -108,6 +109,7 @@ public class AbilityProjectile extends EntityThrowable
 			for (i = 0; i < list.size(); ++i)
 			{
 				Entity entity1 = (Entity) list.get(i);
+				if(entity1 instanceof EntityPlayer) continue;
 				
 				if (entity1.canBeCollidedWith() && (entity1 != this.getThrower() || this.ticksExisted >= 5))
 				{
@@ -158,13 +160,15 @@ public class AbilityProjectile extends EntityThrowable
 					{
 						AbilityExplosion explosion = WyHelper.newExplosion(this.getThrower(), this.posX, this.posY, this.posZ, this.attr.getProjectileExplosionPower());
 						explosion.setDamageOwner(false);
+						explosion.setCanDamagePlayer(false);
 						explosion.setFireAfterExplosion(this.attr.canProjectileExplosionSetFire());
 						explosion.setDestroyBlocks(this.attr.canProjectileExplosionDestroyBlocks());
 						explosion.doExplosion();
 					}
 
-					if (this.attr.getProjectileDamage() > 0)
+					if (this.attr.getProjectileDamage() > 0 && !(hit.entityHit instanceof EntityPlayer)) {
 						hit.entityHit.attackEntityFrom(DamageSource.causeThrownDamage(this, this.getThrower()), this.attr.getProjectileDamage() * props.getDamageMultiplier());
+					}
 					
 					tasksImapct(hit);
 

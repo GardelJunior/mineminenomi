@@ -76,6 +76,7 @@ public class AbilityProperties implements IExtendedEntityProperties
 		data.setBoolean("isOnCooldown", abl.isOnCooldown());
 		data.setBoolean("isCharging", abl.isCharging());
 		data.setBoolean("isPassiveActive", abl.isPassiveActive());
+		data.setLong("useMilis", abl.getMilis());
 		//data.setBoolean("isDisabled", abl.isDisabled());
 		
 		return data;
@@ -125,6 +126,7 @@ public class AbilityProperties implements IExtendedEntityProperties
 				ability.setCooldownActive(props.getBoolean("isOnCooldown"));
 				ability.setChargeActive(props.getBoolean("isCharging"));			
 				ability.setPassiveActive(props.getBoolean("isPassiveActive"));
+				ability.setMilis(props.getLong("useMilis"));
 			}
 		}
 		catch (Exception e)

@@ -25,6 +25,7 @@ import xyz.pixelatedw.MineMineNoMi3.commands.CommandGetWantedPoster;
 import xyz.pixelatedw.MineMineNoMi3.commands.CommandIssueBounty;
 import xyz.pixelatedw.MineMineNoMi3.commands.CommandPouch;
 import xyz.pixelatedw.MineMineNoMi3.commands.CommandRemoveDF;
+import xyz.pixelatedw.MineMineNoMi3.commands.CommandResetStatus;
 import xyz.pixelatedw.MineMineNoMi3.gui.GUIHandler;
 import xyz.pixelatedw.MineMineNoMi3.helpers.WebAppHelper;
 import xyz.pixelatedw.MineMineNoMi3.lists.ListBiomes;
@@ -114,6 +115,7 @@ public class MainMod {
 		event.registerServerCommand(new CommandAbilityProtection());
 		event.registerServerCommand(new CommandDamageMultiplier());
 		event.registerServerCommand(new CommandPouch());
+		event.registerServerCommand(new CommandResetStatus());
 	}
 
 	public static MainMod getMineMineNoMi() {

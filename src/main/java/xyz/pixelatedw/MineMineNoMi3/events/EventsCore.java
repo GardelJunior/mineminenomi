@@ -1,5 +1,8 @@
 package xyz.pixelatedw.MineMineNoMi3.events;
 
+import java.lang.reflect.Array;
+
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
@@ -11,26 +14,29 @@ import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.event.ClickEvent;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import xyz.pixelatedw.MineMineNoMi3.ID;
+import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import xyz.pixelatedw.MineMineNoMi3.MainConfig;
 import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
+import xyz.pixelatedw.MineMineNoMi3.api.abilities.Ability;
 import xyz.pixelatedw.MineMineNoMi3.api.abilities.extra.AbilityProperties;
 import xyz.pixelatedw.MineMineNoMi3.api.debug.WyDebug;
 import xyz.pixelatedw.MineMineNoMi3.api.math.WyMathHelper;
+import xyz.pixelatedw.MineMineNoMi3.api.network.PacketAbilitySync;
+import xyz.pixelatedw.MineMineNoMi3.api.network.WyNetworkHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
 import xyz.pixelatedw.MineMineNoMi3.api.telemetry.WyTelemetry;
 import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
 import xyz.pixelatedw.MineMineNoMi3.data.ExtendedWorldData;
 import xyz.pixelatedw.MineMineNoMi3.data.HistoryProperties;
+import xyz.pixelatedw.MineMineNoMi3.packets.PacketSync;
+import xyz.pixelatedw.MineMineNoMi3.packets.PacketSyncInfo;
 
 public class EventsCore
 {
@@ -82,8 +88,23 @@ public class EventsCore
 				
 				compound = new NBTTagCompound();
 				AbilityProperties.get(e.original).saveNBTData(compound);
-				AbilityProperties abilityProps = AbilityProperties.get(e.entityPlayer);
+				AbilityProperties abilityProps = AbilityProperties.get(e.entityPlayer);				
+				AbilityProperties oldAbilityProps = AbilityProperties.get(e.original);
 				abilityProps.loadNBTData(compound);
+				
+				Ability[] abilities = oldAbilityProps.getAbilitiesInHotbar();
+				for(int i = 0 ; i < abilities.length ; i++) {
+					Ability a = abilities[i];
+					if(a != null) {
+						boolean isRacial = abilityProps.hasRacialAbility(a);
+						boolean isAkuma = abilityProps.hasDevilFruitAbility(a);
+						boolean isHaki = abilityProps.hasHakiAbility(a);
+						
+						if(isRacial || isAkuma || isHaki) {
+							abilityProps.setAbilityInSlot(i, a);
+						}
+					}
+				}
 				
 				if(e.entityPlayer != null && MainConfig.enableExtraHearts)		
 				{
@@ -119,6 +140,23 @@ public class EventsCore
 				props.setDoriki(doriki);
 				props.setBounty(bounty);
 				props.setBelly(belly);
+				
+				AbilityProperties oldAbilityProps = AbilityProperties.get(e.original);
+				AbilityProperties abilityProps = AbilityProperties.get(e.entityPlayer);
+				
+				Ability[] abilities = oldAbilityProps.getAbilitiesInHotbar();
+				for(int i = 0 ; i < abilities.length ; i++) {
+					Ability a = abilities[i];
+					if(a != null) {
+						boolean isRacial = abilityProps.hasRacialAbility(a);
+						boolean isAkuma = abilityProps.hasDevilFruitAbility(a);
+						boolean isHaki = abilityProps.hasHakiAbility(a);
+						
+						if(isRacial || isAkuma || isHaki) {
+							abilityProps.setAbilityInSlot(i, a);
+						}
+					}
+				}
 				
 			}
 			else if(MainConfig.enableKeepIEEPAfterDeath.equals("custom"))
@@ -193,6 +231,38 @@ public class EventsCore
 			{
 				WyTelemetry.sendAllData();
 			}
+		}
+	}
+	
+	@SubscribeEvent
+	public void onEatSomething(PlayerUseItemEvent.Finish e) {
+		if(e.item.getItem() == Items.milk_bucket && !e.entityPlayer.worldObj.isRemote) {
+				EntityPlayer player = e.entityPlayer;
+				
+				ExtendedEntityData props = ExtendedEntityData.get(player);
+				AbilityProperties abilityProps = AbilityProperties.get(player);
+				ExtendedWorldData worldProps = ExtendedWorldData.get(player.worldObj);
+
+				worldProps.removeDevilFruitFromWorld(props.getUsedFruit());
+				
+				props.setUsedFruit("N/A");
+				props.setYamiPower(false);
+				props.setIsLogia(false);
+				props.triggerActiveHaki(false);
+				props.triggerBusoHaki(false);
+				props.triggerKenHaki(false);
+				
+				abilityProps.clearHotbar();
+				abilityProps.clearDevilFruitAbilities();
+				player.clearActivePotions();
+
+				props.setZoanPoint("n/a");
+				
+				player.clearActivePotions();
+				
+				WyNetworkHelper.sendTo(new PacketSync(props), (EntityPlayerMP)player);	
+				WyNetworkHelper.sendToAll(new PacketSyncInfo(player.getDisplayName(), props));	
+				WyNetworkHelper.sendTo(new PacketAbilitySync(abilityProps), (EntityPlayerMP)player);	
 		}
 	}
 }

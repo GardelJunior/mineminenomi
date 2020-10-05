@@ -28,6 +28,7 @@ import xyz.pixelatedw.MineMineNoMi3.MainConfig;
 import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.WyHelper.Direction;
 import xyz.pixelatedw.MineMineNoMi3.api.WyRenderHelper;
+import xyz.pixelatedw.MineMineNoMi3.api.abilities.Ability;
 import xyz.pixelatedw.MineMineNoMi3.api.abilities.AbilityAttribute;
 import xyz.pixelatedw.MineMineNoMi3.api.abilities.extra.AbilityProperties;
 import xyz.pixelatedw.MineMineNoMi3.api.quests.QuestProperties;
@@ -134,26 +135,40 @@ public class EventsCombatMode extends Gui {
 				event.setCanceled(true);
 				GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 				GL11.glDisable(GL11.GL_LIGHTING);
-				this.mc.getTextureManager().bindTexture(ID.TEXTURE_COMBATMODE);
 
 				for (int i = 0; i < 8; i++) {
-					// if(abilityProps.getAbilityFromSlot(0) != null)
-					// System.out.println("" + abilityProps.getAbilityFromSlot(0).isOnCooldown());
+					this.mc.getTextureManager().bindTexture(ID.TEXTURE_COMBATMODE);
 					GL11.glEnable(GL11.GL_BLEND);
-					if (abilityProps.getAbilityFromSlot(i) != null && abilityProps.getAbilityFromSlot(i).isOnCooldown()
-							&& !abilityProps.getAbilityFromSlot(i).isDisabled())
-						this.drawTexturedModalRect((posX - 200 + (i * 50)) / 2, posY - 23, 24, 0, 23, 23);
-					else if (abilityProps.getAbilityFromSlot(i) != null
-							&& abilityProps.getAbilityFromSlot(i).isCharging())
+					
+					final Ability ability = abilityProps.getAbilityFromSlot(i);
+					final boolean isNNull =  ability != null;
+					
+					if (isNNull && ability.isCharging())
 						this.drawTexturedModalRect((posX - 200 + (i * 50)) / 2, posY - 23, 72, 0, 23, 23);
-					else if (abilityProps.getAbilityFromSlot(i) != null
-							&& abilityProps.getAbilityFromSlot(i).isPassiveActive())
+					else if (isNNull && ability.isPassiveActive())
 						this.drawTexturedModalRect((posX - 200 + (i * 50)) / 2, posY - 23, 48, 0, 23, 23);
-					else if (abilityProps.getAbilityFromSlot(i) != null
-							&& abilityProps.getAbilityFromSlot(i).isDisabled())
+					else if (isNNull && ability.isDisabled())
 						this.drawTexturedModalRect((posX - 200 + (i * 50)) / 2, posY - 23, 96, 0, 23, 23);
-					else
+					else {
 						this.drawTexturedModalRect((posX - 200 + (i * 50)) / 2, posY - 23, 0, 0, 23, 23);
+					}
+					
+					OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+					if (abilityProps.getAbilityFromSlot(i) != null) {
+						AbilityAttribute attr = abilityProps.getAbilityFromSlot(i).getAttribute();
+						WyRenderHelper.drawAbilityIcon(WyHelper.getFancyName(attr.getAbilityTexture()),
+								(posX - 192 + (i * 50)) / 2, posY - 19, 16, 16);
+					}
+					
+					this.mc.getTextureManager().bindTexture(ID.TEXTURE_COMBATMODE);
+					if (isNNull && ability.isOnCooldown() && !ability.isDisabled()) {
+						float per = ability.getCooldownPercentage(player);
+						int percentage = (int) (23 * ( per));
+						int invpercentage = (int) (23 * (1.0f - per));
+						GL11.glColor3f(.25f, .25f, .25f);
+						this.drawTexturedModalRect((posX - 200 + (i * 50)) / 2, posY - invpercentage, 0, percentage, 23, invpercentage);
+						GL11.glColor3f(1,1,1);
+					}
 				}
 
 				if (props.isCyborg()) {
@@ -168,15 +183,6 @@ public class EventsCombatMode extends Gui {
 					this.drawTexturedModalRect((posX - 252) / 2, posY - 42, 32, barHeight, 16, 32);
 					this.drawCenteredString(this.mc.fontRenderer, props.getCola() + "", (posX - 237) / 2, posY - 12,
 							Color.WHITE.getRGB());
-				}
-
-				for (int i = 0; i < 8; i++) {
-					OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-					if (abilityProps.getAbilityFromSlot(i) != null) {
-						AbilityAttribute attr = abilityProps.getAbilityFromSlot(i).getAttribute();
-						WyRenderHelper.drawAbilityIcon(WyHelper.getFancyName(attr.getAbilityTexture()),
-								(posX - 192 + (i * 50)) / 2, posY - 19, 16, 16);
-					}
 				}
 
 				int trackDistance = 15;

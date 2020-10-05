@@ -313,8 +313,7 @@ public class WyHelper {
 	
 	public static void sendQuestMsgToPlayer(EntityPlayer player, String text, String questID) {
 		ChatComponentText cct = new ChatComponentText(text);
-		cct.getChatStyle().setChatClickEvent(new ClickEvent(Action.RUN_COMMAND, "tell @p " + questID));
-		cct.getChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.BLUE + "Click to open the quest page")));
+		cct.getChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.BLUE + "This quest is available on quest's menu")));
 		player.addChatComponentMessage(cct);
 	}
 

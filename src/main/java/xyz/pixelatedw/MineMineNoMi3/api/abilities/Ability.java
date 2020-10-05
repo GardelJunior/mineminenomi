@@ -24,8 +24,10 @@ public class Ability
 	protected String originalDisplayName = "n/a";
 	protected AbilityAttribute attr;
 	protected boolean isOnCooldown = false, isCharging = false, isRepeating = false, passiveActive = false, isDisabled = false;
-	private int ticksForCooldown, ticksForCharge, ticksForRepeater, ticksForRepeaterFreq, currentSpawn = 0;
+	private int ticksForCooldown, ticksForCharge, ticksForRepeater, ticksForRepeaterFreq, currentSpawn = 0, currentCooldown = 0;
 
+	private  long  useMilis = 0;
+	
 	public Ability(AbilityAttribute attr)
 	{
 		this.attr = new AbilityAttribute(attr);
@@ -37,6 +39,14 @@ public class Ability
 	}
 
 	public AbilityAttribute getAttribute() { return attr; }
+	
+	public long getMilis() {
+		return useMilis;
+	}
+	
+	public void setMilis(long useMilis) {
+		this.useMilis = useMilis;
+	}
 	
 	public void use(EntityPlayer player)
 	{
@@ -63,6 +73,7 @@ public class Ability
 			{
 				AbilityExplosion explosion = WyHelper.newExplosion(player, player.posX, player.posY, player.posZ, this.attr.getAbilityExplosionPower());
 				explosion.setDamageOwner(false);
+				explosion.setCanDamagePlayer(false);
 				explosion.setFireAfterExplosion(this.attr.canAbilityExplosionSetFire());
 				explosion.setDestroyBlocks(this.attr.canAbilityExplosionDestroyBlocks());
 				explosion.doExplosion();
@@ -205,7 +216,7 @@ public class Ability
 	public void endCharging(EntityPlayer player)
 	{
 		isCharging = false;
-		isOnCooldown = true;
+		this.startCooldown();
 		if(player instanceof EntityPlayerMP)
 			WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)), (EntityPlayerMP) player);
 		
@@ -238,7 +249,13 @@ public class Ability
 		return isOnCooldown;
 	}
 	
-	public void duringCooldown(EntityPlayer player, int currentCooldown) {}
+	public float getCooldownPercentage(EntityPlayer player) {
+		return Math.max(0, Math.min(1, (System.currentTimeMillis() - useMilis) / (attr.getAbilityCooldown() * 20.0f)));
+	}
+	
+	public synchronized void duringCooldown(EntityPlayer player, int currentCooldown) {
+		this.currentCooldown = currentCooldown;
+	}
 	
 	public void hitEntity(EntityPlayer player, EntityLivingBase target) 
 	{
@@ -260,6 +277,7 @@ public class Ability
 	
 	protected void startCooldown()
 	{
+		this.useMilis = System.currentTimeMillis();
 		isOnCooldown = true;
 	}
 	
@@ -294,6 +312,10 @@ public class Ability
 		isCharging = false;
 		isRepeating = false;
 		passiveActive = false;			
+	}
+	
+	public void cooldown() {
+		
 	}
 	
 	class ResetDisable extends Thread

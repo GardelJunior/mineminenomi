@@ -139,7 +139,7 @@ public class EventsQuestsProgress {
 	}
 	
 	@SubscribeEvent
-	public void onInteractWithBlock(PlayerInteractEvent event) {
+	public void onInteractWithQuestItem(PlayerInteractEvent event) {
 		EntityPlayer player = event.entityPlayer;
 		if(player.worldObj.isRemote) return;
 		ItemStack item = player.getHeldItem();

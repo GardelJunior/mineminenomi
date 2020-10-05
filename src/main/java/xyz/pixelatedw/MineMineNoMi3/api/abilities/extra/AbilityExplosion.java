@@ -9,6 +9,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
@@ -43,6 +44,7 @@ public class AbilityExplosion
 	private boolean canDamageEntities = true;
 	private boolean canDamageOwner = true;
 	private boolean canProduceExplosionSound = true;
+	private boolean canDamagePlayer = true;
 	
 	public AbilityExplosion(Entity entity, double posX, double posY, double posZ, double power)
 	{
@@ -93,7 +95,14 @@ public class AbilityExplosion
 	{
 		this.canProduceExplosionSound = hasSound;
 	}
+	
+	public boolean canDamagePlayer() {
+		return canDamagePlayer;
+	}
 
+	public void setCanDamagePlayer(boolean canDamagePlayer) {
+		this.canDamagePlayer = canDamagePlayer;
+	}
 
 	public void doExplosion()
 	{
@@ -156,8 +165,10 @@ public class AbilityExplosion
 		int posX, posY, posZ;
 		Block block;
 
+		float pitchBase = (float) (2f - 4.0f / (Math.max(1, 12f - this.explosionSize)));
+		
 		if(this.canProduceExplosionSound)
-			this.worldObj.playSoundEffect(this.explosionX, this.explosionY, this.explosionZ, "random.explode", 4.0F, (1.0F + (this.worldObj.rand.nextFloat() - this.worldObj.rand.nextFloat()) * 0.2F) * 0.7F);
+			this.worldObj.playSoundEffect(this.explosionX, this.explosionY, this.explosionZ, ID.PROJECT_ID + ":op-explosion", Math.min(3f, (float)this.explosionSize), (pitchBase + (this.worldObj.rand.nextFloat() - this.worldObj.rand.nextFloat()) * 0.2F) * 0.7F);
 		
 		if (this.canDamageEntities)
 		{
@@ -165,6 +176,7 @@ public class AbilityExplosion
 			{
 				if (!canDamageOwner && entity == this.exploder)
 					continue;
+				if(!canDamagePlayer && entity instanceof EntityPlayer) continue;
 					
 				newExplosionPosX = entity.posX - this.explosionX;
 				newExplosionPosY = entity.posY + entity.getEyeHeight() - this.explosionY;
