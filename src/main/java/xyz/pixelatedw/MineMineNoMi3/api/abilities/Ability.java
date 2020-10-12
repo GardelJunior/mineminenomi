@@ -17,19 +17,21 @@ import xyz.pixelatedw.MineMineNoMi3.data.ExtendedEntityData;
 import xyz.pixelatedw.MineMineNoMi3.helpers.DevilFruitsHelper;
 import xyz.pixelatedw.MineMineNoMi3.packets.PacketShounenScream;
 
-public class Ability 
-{
-	
+public class Ability {
+	public Ability parentAbility;
 	protected AbilityProjectile projectile;
 	protected String originalDisplayName = "n/a";
 	protected AbilityAttribute attr;
-	protected boolean isOnCooldown = false, isCharging = false, isRepeating = false, passiveActive = false, isDisabled = false;
-	private int ticksForCooldown, ticksForCharge, ticksForRepeater, ticksForRepeaterFreq, currentSpawn = 0, currentCooldown = 0;
+	protected boolean isOnCooldown = false, isCharging = false, isRepeating = false, passiveActive = false,
+			isDisabled = false;
+	private int ticksForCooldown, ticksForCharge, ticksForRepeater, ticksForRepeaterFreq, currentSpawn = 0,
+			currentCooldown = 0;
+	public int displayColumn = 0;
+	public int displayRow = 0;
 
-	private  long  useMilis = 0;
-	
-	public Ability(AbilityAttribute attr)
-	{
+	private long useMilis = 0;
+
+	public Ability(AbilityAttribute attr) {
 		this.attr = new AbilityAttribute(attr);
 		this.ticksForCooldown = this.attr.getAbilityCooldown();
 		this.ticksForCharge = this.attr.getAbilityCharges();
@@ -37,428 +39,382 @@ public class Ability
 		this.ticksForRepeaterFreq = this.attr.getAbilityRepeaterFrequency();
 		this.originalDisplayName = this.attr.getAbilityDisplayName();
 	}
-
-	public AbilityAttribute getAttribute() { return attr; }
 	
+	public static AbilityMeta getAbilityMeta(EntityPlayer ep) {
+		//TODO
+		return new AbilityMeta();
+	}
+
+	public AbilityAttribute getAttribute() {
+		return attr;
+	}
+
 	public long getMilis() {
 		return useMilis;
 	}
-	
+
 	public void setMilis(long useMilis) {
 		this.useMilis = useMilis;
 	}
-	
-	public void use(EntityPlayer player)
-	{
-		if(!this.isOnCooldown)
-		{
-			if(this.projectile != null)
-			{
-				if(this.attr.isRepeater())
+
+	public void use(EntityPlayer player) {
+		if (!this.isOnCooldown) {
+			if (this.projectile != null) {
+				if (this.attr.isRepeater())
 					startRepeater(player);
 				else
 					player.worldObj.spawnEntityInWorld(this.projectile);
 			}
-			
-			if(this.attr.getPotionEffectsForUser() != null)
-				for(PotionEffect p : this.attr.getPotionEffectsForUser())				
+
+			if (this.attr.getPotionEffectsForUser() != null)
+				for (PotionEffect p : this.attr.getPotionEffectsForUser())
 					player.addPotionEffect(new PotionEffect(p));
 
-			if(this.attr.getPotionEffectsForAoE() != null) 
-				for(PotionEffect p : this.attr.getPotionEffectsForAoE())
-					for(EntityLivingBase l : WyHelper.getEntitiesNear(player, this.attr.getEffectRadius())) 
+			if (this.attr.getPotionEffectsForAoE() != null)
+				for (PotionEffect p : this.attr.getPotionEffectsForAoE())
+					for (EntityLivingBase l : WyHelper.getEntitiesNear(player, this.attr.getEffectRadius()))
 						l.addPotionEffect(new PotionEffect(p));
 
-			if(!(this.attr.getAbilityCharges() > 0) && this.attr.getAbilityExplosionPower() > 0)
-			{
-				AbilityExplosion explosion = WyHelper.newExplosion(player, player.posX, player.posY, player.posZ, this.attr.getAbilityExplosionPower());
+			if (!(this.attr.getAbilityCharges() > 0) && this.attr.getAbilityExplosionPower() > 0) {
+				AbilityExplosion explosion = WyHelper.newExplosion(player, player.posX, player.posY, player.posZ,
+						this.attr.getAbilityExplosionPower());
 				explosion.setDamageOwner(false);
 				explosion.setCanDamagePlayer(false);
 				explosion.setFireAfterExplosion(this.attr.canAbilityExplosionSetFire());
 				explosion.setDestroyBlocks(this.attr.canAbilityExplosionDestroyBlocks());
 				explosion.doExplosion();
 			}
-			
-	    	if(!player.capabilities.isCreativeMode)
-	    		WyTelemetry.addAbilityStat(this.getAttribute().getAbilityTexture(), this.getAttribute().getAttributeName(), 1);
-	    	
-	    	ExtendedEntityData props = ExtendedEntityData.get(player);
-	    	AbilityProperties abilityProps = AbilityProperties.get(player);
-	    	props.setTempPreviousAbility(WyHelper.getFancyName(this.attr.getAttributeName()));
 
-	    	if(!this.attr.isPassive())
-	    		this.sendShounenScream(player);
-				
-	    	duringRepeater(player);
+			if (!player.capabilities.isCreativeMode)
+				WyTelemetry.addAbilityStat(this.getAttribute().getAbilityTexture(),
+						this.getAttribute().getAttributeName(), 1);
+
+			ExtendedEntityData props = ExtendedEntityData.get(player);
+			AbilityProperties abilityProps = AbilityProperties.get(player);
+			props.setTempPreviousAbility(WyHelper.getFancyName(this.attr.getAttributeName()));
+
+			if (!this.attr.isPassive())
+				this.sendShounenScream(player);
+
+			duringRepeater(player);
 			startCooldown();
 			WyNetworkHelper.sendTo(new PacketAbilitySync(abilityProps), (EntityPlayerMP) player);
 			(new Update(player, attr)).start();
 		}
 	}
-	
-	public void duringRepeater(EntityPlayer player)
-	{
-		if(this.isRepeating)
-		{	
-			try 
-			{
-				if(!player.worldObj.isRemote && this.currentSpawn % this.ticksForRepeaterFreq == 0)
-					player.worldObj.spawnEntityInWorld(this.projectile.getClass().getDeclaredConstructor(World.class, EntityLivingBase.class, AbilityAttribute.class).newInstance(player.worldObj, player, attr));
-			} 
-			catch (Exception e) 
-			{
+
+	public void duringRepeater(EntityPlayer player) {
+		if (this.isRepeating) {
+			try {
+				if (!player.worldObj.isRemote && this.currentSpawn % this.ticksForRepeaterFreq == 0)
+					player.worldObj.spawnEntityInWorld(this.projectile.getClass()
+							.getDeclaredConstructor(World.class, EntityLivingBase.class, AbilityAttribute.class)
+							.newInstance(player.worldObj, player, attr));
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			this.currentSpawn++;
 		}
 	}
-	
-	protected void startRepeater(EntityPlayer player)
-	{
+
+	protected void startRepeater(EntityPlayer player) {
 		this.isRepeating = true;
 	}
-	
-	public boolean isRepeating()
-	{
+
+	public boolean isRepeating() {
 		return this.isRepeating;
 	}
-	
-	public void passive(EntityPlayer player)
-	{
-		if(!isOnCooldown)
-		{
-			if(this.passiveActive)
-			{
+
+	public void passive(EntityPlayer player) {
+		if (!isOnCooldown) {
+			if (this.passiveActive) {
 				this.passiveActive = false;
 				WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)), (EntityPlayerMP) player);
-				if(this.attr.getPotionEffectsForUser() != null)
-					for(PotionEffect p : this.attr.getPotionEffectsForUser())	
+				if (this.attr.getPotionEffectsForUser() != null)
+					for (PotionEffect p : this.attr.getPotionEffectsForUser())
 						player.removePotionEffect(p.getPotionID());
-				
+
 				endPassive(player);
-			}
-			else
-			{
+			} else {
 				this.passiveActive = true;
 				WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)), (EntityPlayerMP) player);
-				if(this.attr.getPotionEffectsForUser() != null)
-					for(PotionEffect p : this.attr.getPotionEffectsForUser())				
-						player.addPotionEffect(new PotionEffect(p.getPotionID(), Integer.MAX_VALUE, p.getAmplifier(), true));
-				
+				if (this.attr.getPotionEffectsForUser() != null)
+					for (PotionEffect p : this.attr.getPotionEffectsForUser())
+						player.addPotionEffect(
+								new PotionEffect(p.getPotionID(), Integer.MAX_VALUE, p.getAmplifier(), true));
+
 				this.sendShounenScream(player);
-				
+
 				startPassive(player);
 				(new Update(player, attr)).start();
-			}			
+			}
 		}
 	}
-	
-	public boolean isDisabled()
-	{
+
+	public boolean isDisabled() {
 		return this.isDisabled;
 	}
-	
-	public void disable(EntityPlayer player, boolean bool) 
-	{
-		//if(bool)
-		//	(new ResetDisable(player, attr)).start();
+
+	public void disable(EntityPlayer player, boolean bool) {
+		// if(bool)
+		// (new ResetDisable(player, attr)).start();
 		this.isDisabled = bool;
 		WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)), (EntityPlayerMP) player);
 	}
-	
-	/** Only use super. if the ability is also using passive potion effects, otherwise there's really no plus */
-	public void endPassive(EntityPlayer player) 
-	{
-		if(this.attr.getPotionEffectsForUser() != null)
-			for(PotionEffect p : this.attr.getPotionEffectsForUser())	
+
+	/**
+	 * Only use super. if the ability is also using passive potion effects,
+	 * otherwise there's really no plus
+	 */
+	public void endPassive(EntityPlayer player) {
+		if (this.attr.getPotionEffectsForUser() != null)
+			for (PotionEffect p : this.attr.getPotionEffectsForUser())
 				player.removePotionEffect(p.getPotionID());
 	}
-	
-	public void startPassive(EntityPlayer player) {}
-		
-	public void duringPassive(EntityPlayer player, int passiveTimer) {}
-		
-	public boolean isPassiveActive()
-	{
+
+	public void startPassive(EntityPlayer player) {
+	}
+
+	public void duringPassive(EntityPlayer player, int passiveTimer) {
+	}
+
+	public boolean isPassiveActive() {
 		return this.passiveActive;
 	}
 
-	public void setPassiveActive(boolean b)
-	{
+	public void setPassiveActive(boolean b) {
 		this.passiveActive = b;
 	}
-	
-	public void setChargeActive(boolean b)
-	{
+
+	public void setChargeActive(boolean b) {
 		this.isCharging = b;
 	}
-	
-	public void setCooldownActive(boolean b)
-	{
+
+	public void setCooldownActive(boolean b) {
 		this.isOnCooldown = b;
 	}
-	
-	
-	public void duringCharging(EntityPlayer player, int currentCharge) {}
-	
-	public void startCharging(EntityPlayer player)
-	{
-		if(!isOnCooldown)
-		{
+
+	public void duringCharging(EntityPlayer player, int currentCharge) {
+	}
+
+	public void startCharging(EntityPlayer player) {
+		if (!isOnCooldown) {
 			this.sendShounenScream(player, 1);
-			
+
 			isCharging = true;
 			WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)), (EntityPlayerMP) player);
 			(new Update(player, attr)).start();
 		}
 	}
-	
-	public void endCharging(EntityPlayer player)
-	{
+
+	public void endCharging(EntityPlayer player) {
 		isCharging = false;
 		this.startCooldown();
-		if(player instanceof EntityPlayerMP)
+		if (player instanceof EntityPlayerMP)
 			WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)), (EntityPlayerMP) player);
-		
-		if(projectile != null)
-		{
-			if(this.attr.isRepeater())
+
+		if (projectile != null) {
+			if (this.attr.isRepeater())
 				startRepeater(player);
 			else
 				player.worldObj.spawnEntityInWorld(projectile);
 		}
-		
+
 		this.sendShounenScream(player, 2);
-		
-		if(this.attr.getAbilityExplosionPower() > 0)
-			player.worldObj.newExplosion(player, player.posX, player.posY, player.posZ, this.attr.getAbilityExplosionPower(), this.attr.canAbilityExplosionSetFire(), MainConfig.enableGriefing ? this.attr.canAbilityExplosionDestroyBlocks() : false);		
-				
-    	if(!WyHelper.isDevBuild() && !player.capabilities.isCreativeMode)
-    		WyTelemetry.addAbilityStat(this.getAttribute().getAbilityTexture(), this.getAttribute().getAttributeName(), 1);
+
+		if (this.attr.getAbilityExplosionPower() > 0)
+			player.worldObj.newExplosion(player, player.posX, player.posY, player.posZ,
+					this.attr.getAbilityExplosionPower(), this.attr.canAbilityExplosionSetFire(),
+					MainConfig.enableGriefing ? this.attr.canAbilityExplosionDestroyBlocks() : false);
+
+		if (!WyHelper.isDevBuild() && !player.capabilities.isCreativeMode)
+			WyTelemetry.addAbilityStat(this.getAttribute().getAbilityTexture(), this.getAttribute().getAttributeName(),
+					1);
 
 		(new Update(player, attr)).start();
 	}
-	
-	public boolean isCharging()
-	{
+
+	public boolean isCharging() {
 		return isCharging;
 	}
-	
-	public boolean isOnCooldown()
-	{
+
+	public boolean isOnCooldown() {
 		return isOnCooldown;
 	}
-	
+
 	public float getCooldownPercentage(EntityPlayer player) {
 		return Math.max(0, Math.min(1, (System.currentTimeMillis() - useMilis) / (attr.getAbilityCooldown() * 20.0f)));
 	}
-	
+
 	public synchronized void duringCooldown(EntityPlayer player, int currentCooldown) {
 		this.currentCooldown = currentCooldown;
 	}
-	
-	public void hitEntity(EntityPlayer player, EntityLivingBase target) 
-	{
-		if(this.attr.getPotionEffectsForHit() != null)
-			for(PotionEffect p : this.attr.getPotionEffectsForHit())				
-				target.addPotionEffect(new PotionEffect(p.getPotionID(), p.getDuration(), p.getAmplifier(), true)); 
 
-		if(this.attr.getAbilityExplosionPower() > 0)
-			player.worldObj.newExplosion(target, target.posX, target.posY, target.posZ, this.attr.getAbilityExplosionPower(), this.attr.canAbilityExplosionSetFire(), MainConfig.enableGriefing ? this.attr.canAbilityExplosionDestroyBlocks() : false);		
+	public void hitEntity(EntityPlayer player, EntityLivingBase target) {
+		if (this.attr.getPotionEffectsForHit() != null)
+			for (PotionEffect p : this.attr.getPotionEffectsForHit())
+				target.addPotionEffect(new PotionEffect(p.getPotionID(), p.getDuration(), p.getAmplifier(), true));
+
+		if (this.attr.getAbilityExplosionPower() > 0)
+			player.worldObj.newExplosion(target, target.posX, target.posY, target.posZ,
+					this.attr.getAbilityExplosionPower(), this.attr.canAbilityExplosionSetFire(),
+					MainConfig.enableGriefing ? this.attr.canAbilityExplosionDestroyBlocks() : false);
 
 		passiveActive = false;
 		startCooldown();
 		WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)), (EntityPlayerMP) player);
 
-		target.attackEntityFrom(DamageSource.causePlayerDamage(player), this.attr.getPunchDamage() * ExtendedEntityData.get(player).getDamageMultiplier());
-		
+		target.attackEntityFrom(DamageSource.causePlayerDamage(player),
+				this.attr.getPunchDamage() * ExtendedEntityData.get(player).getDamageMultiplier());
+
 		(new Update(player, attr)).start();
 	}
-	
-	protected void startCooldown()
-	{
+
+	protected void startCooldown() {
 		this.useMilis = System.currentTimeMillis();
 		isOnCooldown = true;
 	}
-	
-	protected void startExtUpdate(EntityPlayer player)
-	{
+
+	protected void startExtUpdate(EntityPlayer player) {
 		WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)), (EntityPlayerMP) player);
 		(new Update(player, attr)).start();
 	}
-	
-	public void startUpdate(EntityPlayer player)
-	{
+
+	public void startUpdate(EntityPlayer player) {
 		this.setCooldownActive(true);
-		if(player instanceof EntityPlayerMP)
+		if (player instanceof EntityPlayerMP)
 			WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)), (EntityPlayerMP) player);
 		(new Update(player, attr)).start();
 	}
-	
-	protected void sendShounenScream(EntityPlayer player)
-	{
+
+	protected void sendShounenScream(EntityPlayer player) {
 		this.sendShounenScream(player, 0);
 	}
-	
-	protected void sendShounenScream(EntityPlayer player, int part)
-	{
-		if(MainConfig.enableAnimeScreaming)
-    		WyNetworkHelper.sendToAllAround(new PacketShounenScream(player.getCommandSenderName(),ExtendedEntityData.get(player).getFightStyle()+"-"+this.attr.getAbilityDisplayName(), this.attr.getAbilityDisplayName(), part), player.dimension, player.posX, player.posY, player.posZ, 15);
+
+	protected void sendShounenScream(EntityPlayer player, int part) {
+		if (MainConfig.enableAnimeScreaming)
+			WyNetworkHelper.sendToAllAround(
+					new PacketShounenScream(player.getCommandSenderName(),
+							ExtendedEntityData.get(player).getFightStyle() + "-" + this.attr.getAbilityDisplayName(),
+							this.attr.getAbilityDisplayName(), part),
+					player.dimension, player.posX, player.posY, player.posZ, 15);
 	}
-	
-	public void reset()
-	{
+
+	public void reset() {
 		isOnCooldown = false;
 		isCharging = false;
 		isRepeating = false;
-		passiveActive = false;			
+		passiveActive = false;
 	}
-	
+
 	public void cooldown() {
-		
+
 	}
-	
-	class ResetDisable extends Thread
-	{
+
+	class ResetDisable extends Thread {
 		private EntityPlayer player;
 		private ExtendedEntityData props;
 		private AbilityAttribute attr;
-		
-		public ResetDisable(EntityPlayer user, AbilityAttribute attribute)
-		{
+
+		public ResetDisable(EntityPlayer user, AbilityAttribute attribute) {
 			this.player = user;
 			this.props = ExtendedEntityData.get(player);
 			this.attr = attribute;
 			this.setName("ResetThread Thread for " + attr.getAttributeName());
 		}
-		
+
 		@Override
-		public void run()
-		{
-			while(isDisabled)
-			{
-				if( !DevilFruitsHelper.isNearbyKairoseki(player)  )
-				{
-			    	disable(player, false);
+		public void run() {
+			while (isDisabled) {
+				if (!DevilFruitsHelper.isNearbyKairoseki(player)) {
+					disable(player, false);
 					setCooldownActive(false);
-					try
-					{
+					try {
 						return;
-					} 
-					catch (Exception e) 
-					{
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
-				try 
-				{
+				try {
 					Thread.sleep(24);
-				} 
-				catch (Exception e) 
-				{
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		}
-		
-		private boolean abilityCounterpart(String ablNameForCheck)
-		{
+
+		private boolean abilityCounterpart(String ablNameForCheck) {
 			return WyHelper.getFancyName(this.attr.getAttributeName()).equals(WyHelper.getFancyName(ablNameForCheck));
 		}
 	}
-	
-	
-	class Update extends Thread
-	{
+
+	class Update extends Thread {
 		private EntityPlayer player;
 		private AbilityAttribute attr;
-		
-		public Update(EntityPlayer user, AbilityAttribute attribute)
-		{
+
+		public Update(EntityPlayer user, AbilityAttribute attribute) {
 			this.player = user;
 			this.attr = attribute;
 			this.setName("Update Thread for " + attr.getAttributeName());
 			ticksForCooldown = this.attr.getAbilityCooldown();
 			ticksForCharge = this.attr.getAbilityCharges();
 		}
-		
+
 		@Override
-		public void run()
-		{
-			if(passiveActive)
-			{
+		public void run() {
+			if (passiveActive) {
 				int passiveTimer = 0;
-				while(passiveActive)
-				{
+				while (passiveActive) {
 					duringPassive(player, passiveTimer++);
-					try 
-					{
+					try {
 						Thread.sleep(20);
-					} 
-					catch (InterruptedException e) 
-					{
+					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
 			}
-			
-			if(isOnCooldown)
-			{
-				while(isOnCooldown)
-				{
-					if(ticksForCooldown > 0)
-					{
+
+			if (isOnCooldown) {
+				while (isOnCooldown) {
+					if (ticksForCooldown > 0) {
 						ticksForCooldown--;
-						if(isRepeating)
-						{
+						if (isRepeating) {
 							ticksForRepeater--;
-							if(ticksForRepeater > this.attr.getAbilityCooldown() - (this.attr.getAbilityCooldown() / this.attr.getAbilityRepeaterTime()) && projectile != null) {}
-							else
-							{
+							if (ticksForRepeater > this.attr.getAbilityCooldown()
+									- (this.attr.getAbilityCooldown() / this.attr.getAbilityRepeaterTime())
+									&& projectile != null) {
+							} else {
 								isRepeating = false;
 								ticksForRepeater = attr.getAbilityCooldown();
 							}
 						}
 						duringCooldown(player, ticksForCooldown);
-						try 
-						{
+						try {
 							Thread.sleep(20);
-						} 
-						catch (InterruptedException e) 
-						{
+						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-					}
-					else
-					{
+					} else {
 						ticksForCooldown = this.attr.getAbilityCooldown();
 						currentSpawn = 0;
 						isOnCooldown = false;
-						if(player instanceof EntityPlayerMP)
-							WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)), (EntityPlayerMP) player);
+						if (player instanceof EntityPlayerMP)
+							WyNetworkHelper.sendTo(new PacketAbilitySync(AbilityProperties.get(player)),
+									(EntityPlayerMP) player);
 						return;
 					}
-				}	
-			}
-			else if(isCharging)
-			{
-				while(isCharging)
-				{
-					if(ticksForCharge > 0)
-					{
-						ticksForCharge--;	
+				}
+			} else if (isCharging) {
+				while (isCharging) {
+					if (ticksForCharge > 0) {
+						ticksForCharge--;
 						duringCharging(player, ticksForCharge);
-						try 
-						{
+						try {
 							Thread.sleep(20);
-						} 
-						catch (InterruptedException e) 
-						{
+						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-					}
-					else
-					{
+					} else {
 						ticksForCharge = this.attr.getAbilityCharges();
 						endCharging(player);
 					}

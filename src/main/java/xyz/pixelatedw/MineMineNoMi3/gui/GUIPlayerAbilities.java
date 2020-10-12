@@ -1,15 +1,35 @@
 package xyz.pixelatedw.MineMineNoMi3.gui;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.stats.Achievement;
+import net.minecraft.stats.AchievementList;
+import net.minecraft.stats.StatFileWriter;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IIcon;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.AchievementPage;
+import scala.actors.threadpool.Arrays;
 import xyz.pixelatedw.MineMineNoMi3.ID;
 import xyz.pixelatedw.MineMineNoMi3.api.WyHelper;
 import xyz.pixelatedw.MineMineNoMi3.api.WyRenderHelper;
@@ -24,14 +44,30 @@ import xyz.pixelatedw.MineMineNoMi3.helpers.DevilFruitsHelper;
 
 public class GUIPlayerAbilities extends GuiPage {
 
+	private static final ResourceLocation texture = new ResourceLocation("textures/gui/achievement/achievement_background.png");
+	
+	private float grabX, grabY;
+	private boolean isGrabbing = false;
+	
+	private int windowX, windowY, windowWidth = 256, windowHeight = 160;
+	private int camWGrid = (windowWidth/16);
+	private int camHGrid = (windowHeight/16);
+	
+	private int canvasX, canvasY, canvasWidth = 3000, canvasHeight = 2000;
+	private int canvasWGrid = (canvasWidth / 16);
+	private int canvasHGrid = (canvasHeight / 16);
+	
+	private final int rowSpacing = 24;
+	private final int colSpacing = 24;
+
 	protected GUIPlayer gui;
 	protected ExtendedEntityData props;
 	protected AbilityProperties abilityProps;
 	private GUIAbilitiesList devilFruitsAbilitiesList, racialAbilitiesList, hakiAbilitiesList;
-	
+
 	public int selectedSlot = -1;
 	public int selectedItem = -1;
-	
+
 	public GUIPlayerAbilities(GUIPlayer gui) {
 		super();
 		this.gui = gui;
@@ -44,7 +80,7 @@ public class GUIPlayerAbilities extends GuiPage {
 		this.xCenter = gui.width / 2;
 		this.yCenter = gui.height / 2;
 
-		this.xStart = xCenter - 256;
+		this.xStart = xCenter - 128;
 		this.yStart = yCenter - 82;
 
 		for (int i = 0; i < 8; i++) {
@@ -52,98 +88,85 @@ public class GUIPlayerAbilities extends GuiPage {
 			this.buttonList.add(new GUIButtonNoTexture(i, (xCenter + 25 + (i * 46)) / 2, yCenter + 45, 21, 21, ""));
 		}
 		
-		this.devilFruitsAbilitiesList = new GUIAbilitiesList(this, abilityProps, abilityProps.getDevilFruitAbilities());
-        this.devilFruitsAbilitiesList.registerScrollButtons(this.buttonList, 998, 999);
-   
-        this.racialAbilitiesList = new GUIAbilitiesList(this, abilityProps, abilityProps.getRacialAbilities());
-        this.racialAbilitiesList.registerScrollButtons(this.buttonList, 998, 999);
-        
-        this.hakiAbilitiesList = new GUIAbilitiesList(this, abilityProps, abilityProps.getHakiAbilities());
-        this.hakiAbilitiesList.registerScrollButtons(this.buttonList, 998, 999);
-        
-        if(abilityProps.getRacialAbilities()[0] != null){
-        	selectedItem = 0;
-        	this.buttonList.add(new GUIButtonNoTexture(8, xCenter - 115, (int)(yStart * 0.6f + 55 * 0.6f), 21, 21, ""));
-        }
-        if(props.getUsedFruit() != null && !props.getUsedFruit().toLowerCase().equals("n/a")){
-        	this.buttonList.add(new GUIButtonNoTexture(9, xCenter - 115, (int)(yStart * 0.6f + 95 * 0.6f), 21, 21, ""));
-        }
+		super.initGui();
 	}
 
 	@Override
 	public void render(int mx, int my, float f) {
-		this.mc.getTextureManager().bindTexture(ID.TEXTURE_COMBATMODE);
+		int xCenter = gui.width / 2;
+		int yCenter = gui.height / 2;
 
-		GL11.glEnable(GL11.GL_BLEND);
+		int xStart = xCenter - 128;
+		int yStart = yCenter - 82;
+		
+		//this.mc.getTextureManager().bindTexture(ID.TEXTURE_COMBATMODE);
+		
+		int camXGrid = (int) (windowX/16);
+		int camYGrid = (int) (windowY/16);
+		
+		if(Mouse.isButtonDown(0)) {
+			if(!isGrabbing) {
+				//TODO: Checar se mouse dentro do canvas
+				isGrabbing = true;
+				this.grabX = mx;
+				this.grabY = my;
+			}else {
+				float diffX = this.grabX-mx;
+				float diffY = this.grabY-my;
+				float moveX = diffX < -16? -16 : diffX > 16? 16 : diffX; //Clamp(-16,diffX,16)
+				float moveY = diffY < -16? -16 : diffY > 16? 16 : diffY; //Clamp(-16,diffY,16)
+				
+				if(windowX + moveX >= canvasX && windowX + 256 + moveX <= canvasX + canvasWidth) windowX += moveX;
+				if(windowY + moveY >= canvasY && windowY + 160 + moveY <= canvasY + canvasHeight) windowY += moveY;
 
-		for (int i = 0; i < 8; i++) {
-			if (i == selectedSlot) {
-				this.drawTexturedModalRect((xCenter + 25 + (i * 46)) / 2, yCenter + 45, 48, 0, 23, 23);
-			} else {
-				this.drawTexturedModalRect((xCenter + 25 + (i * 46)) / 2, yCenter + 45, 0, 0, 23, 23);
+				this.grabX = mx;
+				this.grabY = my;
+			}
+		}else {
+			if(isGrabbing) isGrabbing = false;
+		}
+
+		IIcon icon  = Blocks.planks.getIcon(0, 0);
+		this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+		WyRenderHelper.startGlScissor(xStart + 10, yStart + 10, 236, 145);
+		GL11.glColor3f(.6f, .6f, .2f);
+		for(int i = 0 ; i < canvasHGrid ; i++) {
+			for(int j = 0 ; j < canvasWGrid ; j++) {
+				if(i >= camYGrid - 1  && i <= camYGrid + camHGrid + 1) {
+					if(j >= camXGrid - 1 && j <= camXGrid + camWGrid + 1){
+						this.drawTexturedModelRectFromIcon(xStart - (int)this.windowX + 16 * j, yStart - (int)this.windowY + 16 * i, icon, 16, 16);
+					}
+				}
 			}
 		}
-		
-		WyRenderHelper.startGlScissor((xCenter - 110) / 2, (yCenter - 10) / 2, 280, 105);
-		switch(this.selectedItem) {
-			case 0: this.racialAbilitiesList.drawScreen(mx, my, f); break;
-			case 1: this.devilFruitsAbilitiesList.drawScreen(mx, my, f); break;
-			default: break;
-		}
-		
 		WyRenderHelper.endGlScissor();
-		
-		for(int i = 0; i < 8; i++){
-            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-            if(abilityProps.getAbilityFromSlot(i) != null)
-            	WyRenderHelper.drawAbilityIcon(WyHelper.getFancyName(abilityProps.getAbilityFromSlot(i).getAttribute().getAbilityTexture()), (xCenter + 25 + (i * 46)) / 2 + 4, yCenter + 49, 16, 16);
-        }
-		
-		if(abilityProps.getRacialAbilities()[0] != null){
-			this.mc.getTextureManager().bindTexture(ID.TEXTURE_GUI2);
-			GL11.glPushMatrix();
-			GL11.glScalef(1, 1.4f, 1);
-			this.drawTexturedModalRect(xCenter - 111, (int)(yStart * 0.6f + 27 * 0.6f), selectedItem==0? 150 : 113, 240, 20, 20);
-			GL11.glPopMatrix();
-			WyRenderHelper.drawAbilityIcon(abilityProps.getRacialAbilities()[0].getAttribute().getAttributeName(), xCenter - 108, yStart + 20, 16, 16);	
-		}
-		if(props.getUsedFruit() != null && !props.getUsedFruit().toLowerCase().equals("n/a")){
-			this.mc.getTextureManager().bindTexture(ID.TEXTURE_GUI2);
-			GL11.glPushMatrix();
-			GL11.glScalef(1, 1.4f, 1);
-			this.drawTexturedModalRect(xCenter - 111, (int)(yStart * 0.6f + 54 * 0.6f), selectedItem==1? 150 : 113, 240, 20, 20);
-			GL11.glPopMatrix();
-			if(props.hasYamiPower()) {
-				WyRenderHelper.drawDevilFruitIcon("yamiyaminomi", xCenter - 108, yStart + 43, 16, 16);
-			}else{
-				ItemStack df = DevilFruitsHelper.getDevilFruitItem(props.getUsedFruit());
-				WyRenderHelper.drawDevilFruitIcon(df.getUnlocalizedName().replace("item.", ""), 
-						xCenter - 108, yStart + 43, 16, 16);
-			}
-		}
-		
-		this.drawScreen(mx, my, f);
+        
+
+		//this.drawScreen(mx, my, f);
 	}
 
 	public void actionPerformed(GuiButton button) {
 		if (button.id >= 0 && button.id < 8) {
-			if(this.selectedSlot == button.id) {
-	    		abilityProps.setAbilityInSlot(this.selectedSlot, null);
+			if (this.selectedSlot == button.id) {
+				abilityProps.setAbilityInSlot(this.selectedSlot, null);
 				WyNetworkHelper.sendToServer(new PacketAbilitySync(abilityProps));
-			}else {
+			} else {
 				this.selectedSlot = button.id;
 			}
-		}else {
-			switch(button.id) {
-				case 8: this.selectedItem = 0;
-					break;
-				case 9: this.selectedItem = 1;
-					break;
-				default: break;
+		} else {
+			switch (button.id) {
+			case 8:
+				this.selectedItem = 0;
+				break;
+			case 9:
+				this.selectedItem = 1;
+				break;
+			default:
+				break;
 			}
 		}
 	}
-
+	
 	@Override
 	public String getPageName() {
 		return "Abilities";

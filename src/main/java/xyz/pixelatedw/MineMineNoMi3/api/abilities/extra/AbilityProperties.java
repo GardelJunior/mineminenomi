@@ -1,6 +1,8 @@
 package xyz.pixelatedw.MineMineNoMi3.api.abilities.extra;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +22,9 @@ public class AbilityProperties implements IExtendedEntityProperties
 	private final EntityPlayer thePlayer;
 	
 	private Ability[] hotbarAbilities = new Ability[8];
+	
+	private Map<String, Ability> abilities = new HashMap<String,Ability>();
+	
 	private Ability[] devilFruitAbilities = new Ability[32];
 	private Ability[] racialAbilities = new Ability[32];
 	private Ability[] styleAbilities = new Ability[32];
